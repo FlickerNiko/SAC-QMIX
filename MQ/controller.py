@@ -10,30 +10,26 @@ from .mq_agent import MQAgent
 
 class Controller:
     def __init__(self, mq_agent: MQAgent, args):
-        self.args = args
+        self.n_agents = args.n_agents
+        self.n_actions = args.n_actions
         self.mq_agent = mq_agent
-        self.m_zero = torch.zeros(1, self.args.msg_dim)
-        self.a_zero = torch.zeros(1, self.args.n_actions)
+        self.m_zero = torch.zeros(1, args.msg_dim)
+        self.a_zero = torch.zeros(1, args.n_actions)
 
     def new_episode(self):
 
         self.hiddens = self.mq_agent.init_hiddens(1)
-        self.last_actions = [self.a_zero] * self.args.n_agents
+        self.last_actions = torch.zeros(1, self.n_agents, self.n_actions)
 
-    def get_actions(self, states, avail_actions, explores=None):
+    def get_actions(self, states, avail_actions, explore=False):
         # data: obs, explore
-        if explores == None:
-            explores = [False] * self.args.n_agents
-
-        
-        states = [torch.unsqueeze(torch.as_tensor(state), 0)
-                  for state in states]
-
+               
+        states = torch.as_tensor(states).unsqueeze(0)
         qs, hs_next = self.mq_agent.forward(states, self.last_actions, self.hiddens)
         self.hiddens = hs_next
 
         actions = []
-        for q, avail_action, explore in zip(qs, avail_actions, explores):
+        for q, avail_action in zip(qs.transpose(0,1), avail_actions):
             avail_action = np.nonzero(avail_action)[0]   #one-hot to index
             avail_q = torch.take(q, torch.tensor(avail_action, dtype = torch.int64))
             if explore:
@@ -43,14 +39,16 @@ class Controller:
             a = avail_action[a_index]
             actions.append(a)
 
-        self.last_actions = [self.action_transform(
-            [a], self.args.n_actions) for a in actions]
+        self.last_actions = self.action_transform(actions, self.n_actions).unsqueeze(0)
         return actions
 
-    def action_transform(self, action, n_action):
+    def action_transform(self, actions, n_actions):
 
-        len_a = len(action)
-        output = torch.zeros(len_a, n_action)
-        # if action[0]:   # not None
-        output[torch.arange(0, len_a, dtype=torch.int64), action] = 1
+        actions = torch.as_tensor(actions, dtype = torch.int64)
+        shape = actions.shape + (n_actions,)
+        actions = actions.unsqueeze(-1)
+        output = torch.zeros(shape)
+
+        output.scatter_(len(shape)-1, actions, 1)
+
         return output
