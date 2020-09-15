@@ -7,7 +7,6 @@ class RNNAgent(nn.Module):
     def __init__(self, args):
         super(RNNAgent, self).__init__()
         self.args = args
-
         self.fc1 = nn.Linear(args.input_dim + args.msg_dim + args.n_actions, args.rnn_hidden_dim)
         self.rnn = nn.GRUCell(args.rnn_hidden_dim, args.rnn_hidden_dim)
         self.fc2 = nn.Linear(args.rnn_hidden_dim, args.n_actions)
