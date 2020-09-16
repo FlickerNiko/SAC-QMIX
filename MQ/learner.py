@@ -35,7 +35,7 @@ class Learner:
         actions = data['actions'].to(device=self.device)
         reward = data['reward'].to(device=self.device)
         valid = data['valid'].to(device=self.device)
-
+        avail_actions = data['avail_actions'].to(device=self.device)
         hiddens = self.mq_agent.init_hiddens(n_batch)
         hiddens_tar = self.mq_agent_tar.init_hiddens(n_batch)
         a_last = torch.zeros(n_batch, self.n_agents, self.n_actions, device=self.device)
@@ -62,13 +62,17 @@ class Learner:
             qs.append(self.gather_end(Q, a))
             a_last = self.action_transform(a,self.n_actions)
 
+        Qs = torch.stack(Qs,1)
+        Qs_tar = torch.stack(Qs_tar,1)
+
+        Qs -= (1-avail_actions)*1e38
 
         for i in range(T-1):
             a = actions[:,i]
-            r = reward[:,i]            
-            #a_next = torch.argmax(Qs[:,i+1],2)
-            a_next = torch.argmax(Qs[i],2)            
-            q_next = self.gather_end(Qs_tar[i+1],a_next)
+            r = reward[:,i]
+            
+            a_next = torch.argmax(Qs[:,i+1],2)            
+            q_next = self.gather_end(Qs_tar[:,i+1],a_next)
             q_tar = r.unsqueeze(1) + self.gamma * q_next
             qs_tar.append(q_tar)
 
@@ -86,6 +90,8 @@ class Learner:
 
         if self.step % self.target_update == 0:
             self.update_target()
+
+        return loss
 
 
 
