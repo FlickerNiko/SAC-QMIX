@@ -33,10 +33,10 @@ def main():
     args.epsilon = 0.1
     args.test_every = 10
     args.device = 'cuda'
-    args.hidden_dim = 2048
+    args.hidden_dim = 256
 
-    #mq_agent = MQ.MQAgent(args)
-    #mq_agent.cuda()
+    mq_agent = MQ.MQAgent(args)
+    mq_agent.cuda()
     jal_agent = JAL.JALAgent(args)
     jal_agent.cuda()
     #ctrler = MQ.Controller(mq_agent,args)
@@ -46,7 +46,7 @@ def main():
     learner = JAL.Learner(jal_agent,args)
     scheme = {}
     scheme['obs'] = {'shape':(n_agents,args.input_dim), 'dtype': torch.float32}
-    # scheme['obs'] = {'shape':(args.input_dim,), 'dtype': torch.float32}
+    #scheme['obs'] = {'shape':(args.input_dim,), 'dtype': torch.float32}
     scheme['valid'] = {'shape':(), 'dtype': torch.int32}
     scheme['actions'] = {'shape':(n_agents,), 'dtype': torch.int32}
     scheme['avail_actions'] = {'shape':(n_agents, n_actions), 'dtype': torch.int32}
@@ -73,6 +73,5 @@ def main():
 
     env.close()
 
-    
-with torch.autograd.set_detect_anomaly(True):
-    main()
+
+main()
