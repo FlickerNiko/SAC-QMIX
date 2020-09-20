@@ -5,8 +5,7 @@ import random
 from smac.env import StarCraft2Env
 
 class Runner:
-    def __init__(self, env, controller, args):
-        self.epsilon = args.epsilon
+    def __init__(self, env, controller, args):        
         self.controller = controller
         self.env = env
         
@@ -14,7 +13,7 @@ class Runner:
         
         terminated = False
         episode_reward = 0
-        data = {'obs':[],'valid':[],'actions':[],'avail_actions':[],'reward':[]}
+        data = {'obs':[],'valid':[],'actions':[],'avail_actions':[],'to_learn':[],'reward':[]}
 
         self.env.reset()        
         self.controller.new_episode()
@@ -27,11 +26,9 @@ class Runner:
             explore = False
             
             if not test_mode:
-                rand = random.random()
-                if(rand < self.epsilon):
-                    explore = True
+                explore = True
                 
-            actions = self.controller.get_actions(obs, avail_actions, explore)
+            actions, to_learn = self.controller.get_actions(obs, avail_actions, explore)
             reward, terminated, _ = self.env.step(actions)
             episode_reward += reward
 
@@ -39,6 +36,7 @@ class Runner:
             data['valid'].append(1)
             data['actions'].append(actions)
             data['avail_actions'].append(avail_actions)
+            data['to_learn'].append(to_learn)
             data['reward'].append(reward)
 
         return data, episode_reward

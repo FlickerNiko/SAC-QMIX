@@ -3,8 +3,11 @@ import numpy as np
 import MQ
 import JAL
 import torch
+from VDN.vdn_agent import VDNAgent
 from episode_buffer import EpisodeBuffer
 from runnner import Runner
+from Learner.learner import Learner
+from Controller.controller import Controller
 
 class Args:
     pass
@@ -34,16 +37,13 @@ def main():
     args.test_every = 10
     args.device = 'cuda'
     args.hidden_dim = 256
+    args.solo_explore = True
+    sys_agent = MQ.MQAgent(args)
+    sys_agent.cuda()
 
-    mq_agent = MQ.MQAgent(args)
-    mq_agent.cuda()
-    jal_agent = JAL.JALAgent(args)
-    jal_agent.cuda()
-    #ctrler = MQ.Controller(mq_agent,args)
-    ctrler = JAL.Controller(jal_agent,args)
+    ctrler = Controller(sys_agent,args)
     runner = Runner(env,ctrler,args)
-    #learner = MQ.Learner(mq_agent, args)
-    learner = JAL.Learner(jal_agent,args)
+    learner = Learner(sys_agent, args)
     scheme = {}
     scheme['obs'] = {'shape':(n_agents,args.input_dim), 'dtype': torch.float32}
     #scheme['obs'] = {'shape':(args.input_dim,), 'dtype': torch.float32}
@@ -51,8 +51,8 @@ def main():
     scheme['actions'] = {'shape':(n_agents,), 'dtype': torch.int32}
     scheme['avail_actions'] = {'shape':(n_agents, n_actions), 'dtype': torch.int32}
     scheme['reward'] = {'shape':(), 'dtype': torch.float32}
-
-    buffer = EpisodeBuffer(scheme,1024, env_info['episode_limit'])
+    scheme['to_learn'] = {'shape':(n_agents,), 'dtype': torch.int32}
+    buffer = EpisodeBuffer(scheme,128, env_info['episode_limit'])
     
     print("Init MQ Success")
 

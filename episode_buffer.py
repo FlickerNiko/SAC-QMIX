@@ -55,4 +55,5 @@ class EpisodeBuffer:
         for k, v in data.items():
             ep_len = len(v)
             dtype = self.scheme[k]['dtype']
+            self.data[k][index_ep].zero_()
             self.data[k][index_ep, 0:ep_len] = torch.as_tensor(v, dtype=dtype)
