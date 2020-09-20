@@ -1,9 +1,7 @@
 from smac.env import StarCraft2Env
 import numpy as np
-import MQ
-import JAL
 import torch
-from VDN.vdn_agent import VDNAgent
+from Agent import VDNAgent,MQAgent,JALAgent
 from episode_buffer import EpisodeBuffer
 from runnner import Runner
 from Learner.learner import Learner
@@ -38,7 +36,9 @@ def main():
     args.device = 'cuda'
     args.hidden_dim = 256
     args.solo_explore = True
-    sys_agent = MQ.MQAgent(args)
+    args.n_batch = 16
+    args.len_buffer = 256
+    sys_agent = MQAgent(args)
     sys_agent.cuda()
 
     ctrler = Controller(sys_agent,args)
@@ -52,7 +52,7 @@ def main():
     scheme['avail_actions'] = {'shape':(n_agents, n_actions), 'dtype': torch.int32}
     scheme['reward'] = {'shape':(), 'dtype': torch.float32}
     scheme['to_learn'] = {'shape':(n_agents,), 'dtype': torch.int32}
-    buffer = EpisodeBuffer(scheme,128, env_info['episode_limit'])
+    buffer = EpisodeBuffer(scheme,args.len_buffer, env_info['episode_limit'])
     
     print("Init MQ Success")
 
@@ -66,7 +66,7 @@ def main():
         buffer.add_episode(data)
         print("Total reward in episode {} = {}".format(e, episode_reward))
 
-        data = buffer.sample(8)
+        data = buffer.sample(args.n_batch)
         
         if data:    
             learner.train(data)

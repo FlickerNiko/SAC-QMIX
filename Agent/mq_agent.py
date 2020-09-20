@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .rnn_agent import RNNAgent
+from .mrnn_agent import RNNAgent
 from .message_hub import MessageHub
 
 
