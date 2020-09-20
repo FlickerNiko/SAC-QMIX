@@ -87,8 +87,8 @@ class Learner:
         qs = torch.stack(qs,1)
         qs_tar = torch.stack(qs_tar,1)
 
-        #qs *= to_learn
-        #qs_tar *= to_learn
+        qs *= to_learn
+        qs_tar *= to_learn
 
         loss = F.mse_loss(qs,qs_tar)
         self.optimizer.zero_grad()

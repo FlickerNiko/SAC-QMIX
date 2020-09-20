@@ -14,7 +14,7 @@ class Controller:
         self.n_actions = args.n_actions
         self.epsilon = args.epsilon
         self.device = args.device
-        self.solo_explore = args.solo_explore
+        self.independent_explore = args.solo_explore
         self.sys_agent = sys_agent
 
 
@@ -35,12 +35,9 @@ class Controller:
         actions = []
         explores = [0]*self.n_agents
         to_learns = [1]*self.n_agents
+        
         if explore:
-            rand = random.random()
-            if(rand > self.epsilon):
-                explore = False
-        if explore:
-            if self.solo_explore:
+            if self.independent_explore:
                 index = random.randint(0,self.n_agents-1)
                 explores[index] = 1
                 to_learns = [0]*self.n_agents
