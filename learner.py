@@ -62,24 +62,24 @@ class Learner:
             a = actions[:,i]
             v = valid[:,i]
             
-            hiddens = hiddens * v.view([-1] + [1] * (hiddens.ndim-1))
-            hiddens_tar = hiddens_tar * v.view([-1] + [1] * (hiddens_tar.ndim-1))
+            #hiddens = hiddens * v.view([-1] + [1] * (hiddens.ndim-1))
+            #hiddens_tar = hiddens_tar * v.view([-1] + [1] * (hiddens_tar.ndim-1))
 
             Q, hiddens = self.sys_agent.forward(obs[:,i], actions_explore[:,i], a_last,hiddens)
             Q_tar, hiddens_tar = self.sys_agent_tar.forward(obs[:,i], ae_zero[:,i], a_last, hiddens_tar)
 
-            Q = Q*v.view([-1] + [1] * (Q.ndim-1))            
-            Q_tar = Q_tar*v.view([-1] + [1] * (Q_tar.ndim-1))
-
             Qs.append(Q)
             Qs_tar.append(Q_tar)
-            qs.append(self.gather_end(Q, a))
             a_last = actions_onehot[:,i]
 
         Qs = torch.stack(Qs,1)
         Qs_tar = torch.stack(Qs_tar,1)
 
         Qs -= (1-avail_actions)*1e38
+        Qs *= valid.view(list(valid.shape) + [1] * (Qs.ndim - valid.ndim))
+        Qs_tar *= valid.view(list(valid.shape) + [1] * (Qs.ndim - valid.ndim))
+        qs = self.gather_end(Qs,actions)
+        
 
         for i in range(T-1):
             a = actions[:,i]
@@ -94,7 +94,6 @@ class Learner:
 
         qs_tar.append(reward[:, T-1].unsqueeze(1) + reward.new_zeros(qs_tar[-1].shape))
 
-        qs = torch.stack(qs,1)
         qs_tar = torch.stack(qs_tar,1)
 
         if self.learn_mask:

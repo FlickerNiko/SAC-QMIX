@@ -33,15 +33,16 @@ def main():
     args.target_update = 10
     args.epsilon = 0.1
     args.test_every = 10
+    args.test_count = 10
     args.device = 'cuda'
     args.hidden_dim = 512
     args.explore_type = 'independent'    #solo, independent, sync
     args.learn_mask = False
     args.agent_index = True
     args.explore_action = True
-    args.n_batch = 16
-    args.len_buffer = 128
-    sys_agent = JALAgent(args)
+    args.n_batch = 8
+    args.len_buffer = 256
+    sys_agent = MQAgent(args)
     sys_agent.cuda()
 
     ctrler = Controller(sys_agent,args)
@@ -74,7 +75,7 @@ def main():
             loss = learner.train(data)
         print("Episode {}, reward = {}， loss = {}".format(e, episode_reward, loss))
         if e % args.test_every == 0:
-            for i in range(10):
+            for i in range(args.test_count):
                 _, episode_reward =  runner.run(test_mode=True)        
                 print("Test reward {}".format(episode_reward))
     env.close()
