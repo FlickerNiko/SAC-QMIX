@@ -20,6 +20,8 @@ class Learner:
         self.lr = args.lr
         self.target_update = args.target_update
         self.step = 0
+        self.learn_mask = args.learn_mask
+        self.explore_action = args.explore_action
         self.args = args
 
         self.optimizer = torch.optim.Adam(self.sys_agent.parameters(), lr = self.lr)
@@ -36,7 +38,7 @@ class Learner:
         valid = data['valid'].to(device=self.device)
         avail_actions = data['avail_actions'].to(device=self.device)
         explores = data['explores'].to(device=self.device)
-        #to_learn = data['to_learn'].to(device=self.device)
+        learns = data['learns'].to(device=self.device)
 
         n_batch = obs.shape[0]
         T = obs.shape[1]
@@ -50,9 +52,11 @@ class Learner:
         qs_tar = []
         
         actions_onehot = self.one_hot(actions,self.n_actions)
-        
-        actions_explore = actions_onehot*explores.unsqueeze(-1)
-        ae_zero = torch.zeros_like(actions_explore)
+        if self.explore_action:
+            actions_explore = actions_onehot*explores.unsqueeze(-1)
+        else:
+            actions_explore = torch.zeros_like(actions_onehot)
+        ae_zero = torch.zeros_like(actions_explore)        
 
         for i in range(T):
             a = actions[:,i]
@@ -93,8 +97,10 @@ class Learner:
         qs = torch.stack(qs,1)
         qs_tar = torch.stack(qs_tar,1)
 
-        #qs *= to_learn
-        #qs_tar *= to_learn
+        if self.learn_mask:
+            qs *= learns
+            qs_tar *= learns
+
         loss = F.mse_loss(qs,qs_tar)
         self.optimizer.zero_grad()
         loss.backward()       

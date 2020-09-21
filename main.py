@@ -34,13 +34,14 @@ def main():
     args.epsilon = 0.1
     args.test_every = 10
     args.device = 'cuda'
-    args.hidden_dim = 256
-    args.independent_explore = True
+    args.hidden_dim = 512
+    args.explore_type = 'independent'    #solo, independent, sync
+    args.learn_mask = False
     args.agent_index = True
     args.explore_action = True
     args.n_batch = 16
     args.len_buffer = 128
-    sys_agent = MQAgent(args)
+    sys_agent = JALAgent(args)
     sys_agent.cuda()
 
     ctrler = Controller(sys_agent,args)
@@ -54,6 +55,8 @@ def main():
     scheme['avail_actions'] = {'shape':(n_agents, n_actions), 'dtype': torch.int32}
     scheme['reward'] = {'shape':(), 'dtype': torch.float32}
     scheme['explores'] = {'shape':(n_agents,), 'dtype': torch.int32}
+    scheme['learns'] = {'shape':(n_agents,), 'dtype': torch.int32}
+
     buffer = EpisodeBuffer(scheme,args.len_buffer, env_info['episode_limit'])
     
     print("Init MQ Success")
