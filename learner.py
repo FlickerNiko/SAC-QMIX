@@ -35,7 +35,8 @@ class Learner:
         reward = data['reward'].to(device=self.device)
         valid = data['valid'].to(device=self.device)
         avail_actions = data['avail_actions'].to(device=self.device)
-        to_learn = data['to_learn'].to(device=self.device)
+        explores = data['explores'].to(device=self.device)
+        #to_learn = data['to_learn'].to(device=self.device)
 
         n_batch = obs.shape[0]
         T = obs.shape[1]
@@ -47,7 +48,12 @@ class Learner:
         Qs_tar = []
         qs = []
         qs_tar = []
-       
+        
+        actions_onehot = self.one_hot(actions,self.n_actions)
+        
+        actions_explore = actions_onehot*explores.unsqueeze(-1)
+        ae_zero = torch.zeros_like(actions_explore)
+
         for i in range(T):
             a = actions[:,i]
             v = valid[:,i]
@@ -55,8 +61,8 @@ class Learner:
             hiddens = hiddens * v.view([-1] + [1] * (hiddens.ndim-1))
             hiddens_tar = hiddens_tar * v.view([-1] + [1] * (hiddens_tar.ndim-1))
 
-            Q, hiddens = self.sys_agent.forward(obs[:,i], a_last,hiddens)
-            Q_tar, hiddens_tar = self.sys_agent_tar.forward(obs[:,i], a_last, hiddens_tar)
+            Q, hiddens = self.sys_agent.forward(obs[:,i], actions_explore[:,i], a_last,hiddens)
+            Q_tar, hiddens_tar = self.sys_agent_tar.forward(obs[:,i], ae_zero[:,i], a_last, hiddens_tar)
 
             Q = Q*v.view([-1] + [1] * (Q.ndim-1))            
             Q_tar = Q_tar*v.view([-1] + [1] * (Q_tar.ndim-1))
@@ -64,7 +70,7 @@ class Learner:
             Qs.append(Q)
             Qs_tar.append(Q_tar)
             qs.append(self.gather_end(Q, a))
-            a_last = self.one_hot(a, self.n_actions)
+            a_last = actions_onehot[:,i]
 
         Qs = torch.stack(Qs,1)
         Qs_tar = torch.stack(Qs_tar,1)
@@ -87,9 +93,8 @@ class Learner:
         qs = torch.stack(qs,1)
         qs_tar = torch.stack(qs_tar,1)
 
-        qs *= to_learn
-        qs_tar *= to_learn
-
+        #qs *= to_learn
+        #qs_tar *= to_learn
         loss = F.mse_loss(qs,qs_tar)
         self.optimizer.zero_grad()
         loss.backward()       

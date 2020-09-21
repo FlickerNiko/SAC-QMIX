@@ -13,7 +13,7 @@ class Runner:
         
         terminated = False
         episode_reward = 0
-        data = {'obs':[],'valid':[],'actions':[],'avail_actions':[],'to_learn':[],'reward':[]}
+        data = {'obs':[],'valid':[],'actions':[],'avail_actions':[],'explores':[],'reward':[]}
 
         self.env.reset()        
         self.controller.new_episode()
@@ -28,7 +28,7 @@ class Runner:
             if not test_mode:
                 explore = True
                 
-            actions, to_learn = self.controller.get_actions(obs, avail_actions, explore)
+            actions, explores = self.controller.get_actions(obs, avail_actions, explore)
             reward, terminated, _ = self.env.step(actions)
             episode_reward += reward
 
@@ -36,7 +36,7 @@ class Runner:
             data['valid'].append(1)
             data['actions'].append(actions)
             data['avail_actions'].append(avail_actions)
-            data['to_learn'].append(to_learn)
+            data['explores'].append(explores)
             data['reward'].append(reward)
 
         return data, episode_reward

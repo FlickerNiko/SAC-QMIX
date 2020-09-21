@@ -14,7 +14,7 @@ class Controller:
         self.n_actions = args.n_actions
         self.epsilon = args.epsilon
         self.device = args.device
-        self.independent_explore = args.solo_explore
+        self.independent_explore = args.independent_explore
         self.sys_agent = sys_agent
 
 
@@ -28,23 +28,24 @@ class Controller:
                
         states = torch.as_tensor(states, device=self.device).unsqueeze(0)
         avail_actions = torch.as_tensor(avail_actions,device=self.device).unsqueeze(0)
+        actions_explore = torch.zeros(1,self.n_agents,self.n_actions, device=self.device)
         #with torch.no_grad():
-        qs, hs_next = self.sys_agent.forward(states, self.last_actions, self.hiddens)
+        qs, hs_next = self.sys_agent.forward(states, actions_explore, self.last_actions, self.hiddens)
         self.hiddens = hs_next
         qs -= (1-avail_actions)*1e38
         actions = []
         explores = [0]*self.n_agents
-        to_learns = [1]*self.n_agents
         
         if explore:
             if self.independent_explore:
-                index = random.randint(0,self.n_agents-1)
-                explores[index] = 1
-                to_learns = [0]*self.n_agents
-                to_learns[index] = 1
-                
+                for i in range(self.n_agents):
+                    rand = random.random()
+                    if rand < self.epsilon:
+                        explores[i] = 1
             else:
-                explores = [1]*self.n_agents
+                rand = random.random()
+                if rand < self.epsilon:                    
+                    explores = [1]*self.n_agents
 
         for q, avail_a, explore in zip(qs[0], avail_actions[0], explores) :
             
@@ -57,7 +58,7 @@ class Controller:
         actions = torch.stack(actions)
 
         self.last_actions = self.one_hot(actions, self.n_actions).unsqueeze(0)
-        return actions.to(device='cpu').numpy(), to_learns
+        return actions.to(device='cpu').numpy(), explores
 
     def one_hot(self, tensor, n_classes):
         return F.one_hot(tensor.to(dtype=torch.int64), n_classes).to(dtype=torch.float32)

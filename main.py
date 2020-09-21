@@ -35,7 +35,9 @@ def main():
     args.test_every = 10
     args.device = 'cuda'
     args.hidden_dim = 256
-    args.solo_explore = True
+    args.independent_explore = True
+    args.agent_index = True
+    args.explore_action = True
     args.n_batch = 16
     args.len_buffer = 128
     sys_agent = MQAgent(args)
@@ -51,26 +53,27 @@ def main():
     scheme['actions'] = {'shape':(n_agents,), 'dtype': torch.int32}
     scheme['avail_actions'] = {'shape':(n_agents, n_actions), 'dtype': torch.int32}
     scheme['reward'] = {'shape':(), 'dtype': torch.float32}
-    scheme['to_learn'] = {'shape':(n_agents,), 'dtype': torch.int32}
+    scheme['explores'] = {'shape':(n_agents,), 'dtype': torch.int32}
     buffer = EpisodeBuffer(scheme,args.len_buffer, env_info['episode_limit'])
     
     print("Init MQ Success")
 
     n_episodes = 1000
-
+    loss = None
     for e in range(n_episodes):
 
-        test_mode = True if e % args.test_every == 0 else False
-        data,episode_reward =  runner.run(test_mode=test_mode)
         
-        buffer.add_episode(data)
-        print("Total reward in episode {} = {}".format(e, episode_reward))
-
+        data, episode_reward =  runner.run()        
+        buffer.add_episode(data)        
         data = buffer.sample(args.n_batch)
         
         if data:    
-            learner.train(data)
-
+            loss = learner.train(data)
+        print("Episode {}, reward = {}， loss = {}".format(e, episode_reward, loss))
+        if e % args.test_every == 0:
+            for i in range(10):
+                _, episode_reward =  runner.run(test_mode=True)        
+                print("Test reward {}".format(episode_reward))
     env.close()
 
 
