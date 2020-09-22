@@ -32,17 +32,21 @@ class MQAgent(nn.Module):
 
         qs = []
         hs_next = []
+        ms_send = []
 
         for i in range(self.n_agents):
-            actions_explore_i = actions_explore.clone()
-            actions_explore_i[:,i].zero_()
-            ms_send = []
-            for j in range(self.n_agents):
-                ms_send.append(self.agent.forward(states[:,j], agent_ids[:,j],actions_explore_i[:,j],m_zero,actions_last[:,j] , hiddens[:,j])[1])
-                
-            ms_recv = self.msg_hub(ms_send)    
-            q,_,h_next = self.agent.forward(states[:,i], agent_ids[:,i],a_zero, ms_recv[i], actions_last[:,i] , hiddens[:,i])
+            ms_send.append(self.agent.forward(states[:,i], agent_ids[:,i],actions_explore[:,i],m_zero,actions_last[:,i] , hiddens[:,i])[1])        
+        ms_send = torch.stack(ms_send,1)
+        ms_recv = self.msg_hub.forward(ms_send)
+        ms_recv = ms_recv.clone()
+        for i in range(self.n_agents):
+            if torch.nonzero(actions_explore[:,i]).shape[0]:   #explore agent            
+                ms_send_i = ms_send.clone()
+                ms_send_i[:,i] = self.agent.forward(states[:,i], agent_ids[:,i],a_zero,m_zero,actions_last[:,i] , hiddens[:,i])[1]
+                ms_recv[:,i] = self.msg_hub.forward(ms_send_i)[:,i]
 
+        for i in range(self.n_agents):            
+            q,_,h_next = self.agent.forward(states[:,i], agent_ids[:,i],a_zero, ms_recv[:,i], actions_last[:,i] , hiddens[:,i])
             qs.append(q)
             hs_next.append(h_next)
         

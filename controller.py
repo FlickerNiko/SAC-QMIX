@@ -39,14 +39,14 @@ class Controller:
 
         if explore:
             if self.explore_type == 'independent':
-                learns = torch.zeros(self.n_agents, dtype= torch.int32)
+                #learns = torch.zeros(self.n_agents, dtype= torch.int32)
                 for i in range(self.n_agents):
                     rand = random.random()
                     if rand < self.epsilon:
                         explores[i] = 1
                         learns[i] = 1
-                if torch.nonzero(explores).shape[0] == 0:                
-                    learns = torch.ones(self.n_agents, dtype = torch.int32)
+                #if torch.nonzero(explores).shape[0] == 0:                
+                    #learns = torch.ones(self.n_agents, dtype = torch.int32)
 
             elif self.explore_type == 'solo':
                 rand = random.random()
@@ -71,7 +71,7 @@ class Controller:
         actions = torch.stack(actions)
 
         self.last_actions = self.one_hot(actions, self.n_actions).unsqueeze(0)
-        return actions.to(device='cpu').numpy(), explores, learns
+        return actions.to(device='cpu').numpy(), explores.numpy(), learns.numpy()
 
     def one_hot(self, tensor, n_classes):
         return F.one_hot(tensor.to(dtype=torch.int64), n_classes).to(dtype=torch.float32)

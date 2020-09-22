@@ -15,7 +15,7 @@ class VDNAgent(nn.Module):
         hiddens = torch.stack(hiddens,1)
         return hiddens
 
-    def forward(self, states, actions_last, hiddens):
+    def forward(self, states, actions_explore, actions_last, hiddens):
         n_batch = states.shape[0]
         qs = []
         hs_next = []
@@ -23,7 +23,7 @@ class VDNAgent(nn.Module):
         indices = F.one_hot(indices, self.n_agents).to(dtype=torch.float32)
         indices = torch.stack([indices]*n_batch, 0)
         for i in range(self.n_agents):
-            q, h_next = self.agent.forward(states[:,i],indices[:,i], hiddens[:,i])
+            q, h_next = self.agent.forward(states[:,i],indices[:,i], actions_last[:,i], hiddens[:,i])
             qs.append(q)
             hs_next.append(h_next)
         

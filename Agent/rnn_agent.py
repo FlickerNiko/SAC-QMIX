@@ -14,7 +14,7 @@ class RNNAgent(nn.Module):
         self.n_agents = args.n_agents
         self.rnn_hidden_dim = args.rnn_hidden_dim
 
-        self.fc1 = nn.Linear(self.input_dim + self.n_agents, self.rnn_hidden_dim)
+        self.fc1 = nn.Linear(self.input_dim + self.n_agents + self.n_actions, self.rnn_hidden_dim)
         self.rnn = nn.GRUCell(self.rnn_hidden_dim, self.rnn_hidden_dim)
         self.fc2 = nn.Linear(self.rnn_hidden_dim, self.n_actions)
 
@@ -22,8 +22,8 @@ class RNNAgent(nn.Module):
         # make hidden states on same device as model
         return self.fc1.weight.new_zeros(n_batch, self.rnn_hidden_dim)
 
-    def forward(self, inputs, index, h_last):
-        x = torch.cat([inputs,index],1)
+    def forward(self, inputs, index, action_last, h_last):
+        x = torch.cat([inputs,index, action_last],1)
         h = F.relu(self.fc1(x))        
         h = self.rnn(h, h_last)
         q = self.fc2(h)

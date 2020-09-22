@@ -13,9 +13,11 @@ class MessageHub(nn.Module):
         self.fcm =  nn.Linear(self.hidden_dim, self.n_agents * self.msg_dim)
     
     def forward(self, messages):
-        x = torch.cat(messages,1)
+        x = messages.view(-1,self.n_agents * self.msg_dim)
+        #x = torch.cat(messages,1)
         x = F.relu(self.fc1(x))
         m = F.tanh(self.fcm(x))
-        m_out = torch.chunk(m, self.n_agents, 1)
+        #m_out = torch.chunk(m, self.n_agents, 1)
+        m_out = m.view(-1,self.n_agents, self.msg_dim)
         return m_out
 
