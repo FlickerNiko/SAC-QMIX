@@ -12,14 +12,10 @@ from writter_util import WritterUtil
 class Args:
     pass
 
-def main():
+def main(args):
 
-    args = Args()
-
-    args.msg_dim = 32
-    args.rnn_hidden_dim = 128
-    
-    env = StarCraft2Env(map_name="3m")
+      
+    env = StarCraft2Env(map_name=args.map_name)
     env_info = env.get_env_info()
 
     n_actions = env_info["n_actions"]
@@ -28,27 +24,12 @@ def main():
     args.n_agents = n_agents
     args.n_actions = n_actions
     args.input_dim = env_info['obs_shape']
-    args.hub_hidden_dim = 128
-    args.gamma = 0.99
-    args.lr = 1e-3
-    args.l2 = 0
-    args.target_update = 10
-    args.epsilon = 0.1
-    args.test_every = 10
-    args.test_count = 10
-    args.device = 'cuda'
-    args.hidden_dim = 512
-    args.explore_type = 'independent'    #solo, independent, sync
-    args.learn_mask = True
-    args.agent_index = True
-    args.explore_action = True
-    args.n_batch = 8
-    args.len_buffer = 256
-    args.log_every = 20
+    args.episode_limit = env_info['episode_limit']
     sys_agent = MQAgent(args)
-    sys_agent.cuda()
+    if args.device == 'cuda':        
+        sys_agent.cuda()
     
-    writter = SummaryWriter('runs/writter_test3')
+    writter = SummaryWriter('runs/'+ args.run_name)
     w_util = WritterUtil(writter,args)
 
     ctrler = Controller(sys_agent,args)
@@ -63,13 +44,10 @@ def main():
     scheme['explores'] = {'shape':(n_agents,), 'dtype': torch.int32}
     scheme['learns'] = {'shape':(n_agents,), 'dtype': torch.int32}
 
-    buffer = EpisodeBuffer(scheme,args.len_buffer, env_info['episode_limit'])
+    buffer = EpisodeBuffer(scheme, args)
     
-    print("Init MQ Success")
-
-    n_episodes = 200
     loss = None
-    for e in range(n_episodes):
+    for e in range(args.n_episodes):
 
         
         data, episode_reward =  runner.run()        
@@ -97,8 +75,41 @@ def main():
 
         if e % args.log_every == 0:
             w_util.WriteModel('model', sys_agent, e)
+            state_dict = {}
+            state_dict['args'] = args
+            state_dict['model_state'] = sys_agent.state_dict()
+            state_dict['optim_state'] = learner.optimizer.state_dict()
+            state_dict['episode'] = e            
+            state_dict['buffer_state'] = buffer.state_dict()
+            torch.save(state_dict, 'checkpoints/'+args.run_name+'.tar')
 
     env.close()
 
+if __name__ == "__main__":
 
-main()
+    args = Args()
+    args.map_name = '3m'
+    args.msg_dim = 32
+    args.rnn_hidden_dim = 128
+    args.hub_hidden_dim = 128
+    args.gamma = 0.99
+    args.lr = 1e-3
+    args.l2 = 0
+    args.target_update = 10
+    args.epsilon = 0.1
+    args.test_every = 10
+    args.test_count = 10
+    args.device = 'cuda'
+    args.hidden_dim = 512
+    args.explore_type = 'independent'    #solo, independent, sync
+    args.learn_mask = False
+    args.agent_index = True
+    args.explore_action = True
+    args.n_batch = 8
+    args.buffer_size = 256
+    args.log_every = 20
+    args.log_num = None
+    args.n_episodes = 50
+    args.run_name = 'test_checkpt'
+    args.start_type = 'new'   #new continue
+    main(args)

@@ -3,15 +3,11 @@ import numpy as np
 
 
 class EpisodeBuffer:
-    def __init__(self,
-                 scheme,
-                 buffer_size,
-                 max_seq_length,
-                 device="cpu"):
+    def __init__(self, scheme, args):
         self.scheme = scheme.copy()
-        self.buffer_size = buffer_size
-        self.max_seq_length = max_seq_length
-        self.device = device
+        self.buffer_size = args.buffer_size
+        self.max_seq_length = args.episode_limit
+        self.device = args.device
         self._setup_data()
 
     def _setup_data(self):
@@ -57,3 +53,12 @@ class EpisodeBuffer:
             dtype = self.scheme[k]['dtype']
             self.data[k][index_ep].zero_()
             self.data[k][index_ep, 0:ep_len] = torch.as_tensor(v, dtype=dtype)
+
+    def state_dict(self):
+        buffer_state = {'index_st':self.index_st, 'n_sample': self.n_sample, 'data': self.data}
+        return buffer_state
+    
+    def load_state_dict(self, state_dict):
+        self.index_st = state_dict['index_st']
+        self.n_sample = state_dict['n_sample']    
+        self.data = state_dict['data']
