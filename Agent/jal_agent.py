@@ -12,8 +12,7 @@ class JALAgent(nn.Module):
         self.input_dim = args.input_dim
         self.hidden_dim = args.hidden_dim
 
-        self.fc1 = nn.Linear((self.input_dim+self.n_actions)*self.n_agents, self.hidden_dim)
-        #self.fc1 = nn.Linear(self.input_dim + self.n_actions*self.n_agents, self.hidden_dim)
+        self.fc1 = nn.Linear((self.input_dim+self.n_actions*2)*self.n_agents, self.hidden_dim)        
         self.rnn = nn.GRUCell(self.hidden_dim,self.hidden_dim)
         self.fc2 = nn.Linear(self.hidden_dim, self.n_actions*self.n_agents)        
         
@@ -23,13 +22,10 @@ class JALAgent(nn.Module):
         return self.fc1.weight.new_zeros(n_batch, self.hidden_dim)
         
 
-    def forward(self, states, actions_last, hiddens):
+    def forward(self, states, actions_explore, actions_last, hiddens):
         
-
-        #a = actions_last.view(-1, self.n_agents*self.n_actions)
-        #x = torch.cat([states, a], dim=1)
-        x = torch.cat([states,actions_last],dim=2)
-        x = x.view(-1, (self.input_dim+self.n_actions)*self.n_agents)        
+        x = torch.cat([states,actions_explore, actions_last],dim=2)
+        x = x.view(-1, (self.input_dim+self.n_actions*2)*self.n_agents)        
         x = F.relu(self.fc1(x))
         
         h = self.rnn(x,hiddens)

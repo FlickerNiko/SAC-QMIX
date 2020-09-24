@@ -22,10 +22,10 @@ class Controller:
 
         self.hiddens = self.sys_agent.init_hiddens(1)
         self.last_actions = torch.zeros(1, self.n_agents, self.n_actions, device=self.device)
+        self.sys_agent.eval()
 
     def get_actions(self, states, avail_actions, explore=False):
-        # data: obs, explore
-               
+           
         states = torch.as_tensor(states, device=self.device).unsqueeze(0)
         avail_actions = torch.as_tensor(avail_actions,device=self.device).unsqueeze(0)
         actions_explore = torch.zeros(1,self.n_agents,self.n_actions, device=self.device)

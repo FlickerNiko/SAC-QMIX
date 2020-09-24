@@ -18,18 +18,19 @@ class Learner:
         self.n_actions = args.n_actions
         self.gamma = args.gamma
         self.lr = args.lr
+        self.l2 = args.l2
         self.target_update = args.target_update
         self.step = 0
         self.learn_mask = args.learn_mask
         self.explore_action = args.explore_action
         self.args = args
 
-        self.optimizer = torch.optim.Adam(self.sys_agent.parameters(), lr = self.lr)
+        self.optimizer = torch.optim.Adam(self.sys_agent.parameters(), lr = self.lr, weight_decay=self.l2)
         
     def train(self, data):
         
         self.step += 1
-
+        self.sys_agent.train()
         
 
         obs = data['obs'].to(device=self.device)
