@@ -49,7 +49,7 @@ class WritterUtil:
         n += 1
         if step - last_step >= self.log_every:
             std, mean = torch.std_mean(buffer[0:n])
-            self.writter.add_scalars(tag, {'high': mean+std, 'mean': mean, 'low': mean-std}, step)
+            self.writter.add_scalars(tag, {'high': mean+std/2, 'mean': mean, 'low': mean-std/2}, step)
             last_step = step
             n=0
 

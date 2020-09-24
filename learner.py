@@ -22,7 +22,7 @@ class Learner:
         self.target_update = args.target_update
         self.step = 0
         self.learn_mask = args.learn_mask
-        self.explore_action = args.explore_action
+        self.action_explore = args.action_explore
         self.args = args
 
         self.optimizer = torch.optim.Adam(self.sys_agent.parameters(), lr = self.lr, weight_decay=self.l2)
@@ -53,7 +53,7 @@ class Learner:
         qs_tar = []
         
         actions_onehot = self.one_hot(actions,self.n_actions)
-        if self.explore_action:
+        if self.action_explore:
             actions_explore = actions_onehot*explores.unsqueeze(-1)
         else:
             actions_explore = torch.zeros_like(actions_onehot)
