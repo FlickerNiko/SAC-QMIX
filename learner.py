@@ -9,6 +9,7 @@ class Learner:
         self.device = args.device
         
         self.sys_agent = sys_agent
+        self.sys_agent.train()
         self.sys_agent_tar = type(sys_agent)(args)
         if self.device == 'cuda':
             self.sys_agent_tar.cuda()
@@ -30,9 +31,7 @@ class Learner:
     def train(self, data):
         
         self.step += 1
-        self.sys_agent.train()
         
-
         obs = data['obs'].to(device=self.device)
         actions = data['actions'].to(device=self.device)
         reward = data['reward'].to(device=self.device)
@@ -60,8 +59,8 @@ class Learner:
         ae_zero = torch.zeros_like(actions_explore)        
 
         for i in range(T):
-            a = actions[:,i]
-            v = valid[:,i]
+            #a = actions[:,i]
+            #v = valid[:,i]
             
             #hiddens = hiddens * v.view([-1] + [1] * (hiddens.ndim-1))
             #hiddens_tar = hiddens_tar * v.view([-1] + [1] * (hiddens_tar.ndim-1))
@@ -83,7 +82,7 @@ class Learner:
         
 
         for i in range(T-1):
-            a = actions[:,i]
+            #a = actions[:,i]
             r = reward[:,i]
             
             a_next = torch.argmax(Qs[:,i+1],2)            

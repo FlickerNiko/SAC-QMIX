@@ -17,7 +17,7 @@ class EpisodeBuffer:
         self.data = {}
         for k, v in self.scheme.items():
             shape = (self.buffer_size, self.max_seq_length) + v['shape']
-            self.data[k] = torch.zeros(shape, dtype=v['dtype'])
+            self.data[k] = torch.zeros(shape, dtype=v['dtype'],device=self.device)
 
     def sample(self, batch_size):
         if self.n_sample < batch_size:
@@ -52,7 +52,7 @@ class EpisodeBuffer:
             ep_len = len(v)
             dtype = self.scheme[k]['dtype']
             self.data[k][index_ep].zero_()
-            self.data[k][index_ep, 0:ep_len] = torch.as_tensor(v, dtype=dtype)
+            self.data[k][index_ep, 0:ep_len] = torch.as_tensor(v, dtype=dtype, device=self.device)
 
     def state_dict(self):
         buffer_state = {'index_st':self.index_st, 'n_sample': self.n_sample, 'data': self.data}

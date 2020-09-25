@@ -15,25 +15,27 @@ class Controller:
         self.epsilon = args.epsilon
         self.device = args.device
         self.explore_type = args.explore_type
-        self.sys_agent = sys_agent
-
+        self.sys_agent_src = sys_agent
+        self.sys_agent = type(sys_agent)(args)        
+        self.sys_agent.eval()
 
     def new_episode(self):
-
+        state_dict = self.sys_agent_src.state_dict()
+        self.sys_agent.load_state_dict(state_dict)        
         self.hiddens = self.sys_agent.init_hiddens(1)
-        self.last_actions = torch.zeros(1, self.n_agents, self.n_actions, device=self.device)
-        self.sys_agent.eval()
+        self.last_actions = torch.zeros(1, self.n_agents, self.n_actions)
+        
 
     def get_actions(self, states, avail_actions, explore=False):
            
-        states = torch.as_tensor(states, device=self.device).unsqueeze(0)
-        avail_actions = torch.as_tensor(avail_actions,device=self.device).unsqueeze(0)
-        actions_explore = torch.zeros(1,self.n_agents,self.n_actions, device=self.device)
-        #with torch.no_grad():
-        qs, hs_next = self.sys_agent.forward(states, actions_explore, self.last_actions, self.hiddens)
+        states = torch.as_tensor(states).unsqueeze(0)
+        avail_actions = torch.as_tensor(avail_actions).unsqueeze(0)
+        actions_explore = torch.zeros(1,self.n_agents,self.n_actions)
+        with torch.no_grad():
+            qs, hs_next = self.sys_agent.forward(states, actions_explore, self.last_actions, self.hiddens)
         self.hiddens = hs_next
         qs -= (1-avail_actions)*1e38
-        actions = []
+        
         explores = torch.zeros(self.n_agents, dtype= torch.int32)
         learns = torch.ones(self.n_agents, dtype= torch.int32)
 
@@ -60,6 +62,8 @@ class Controller:
                 if rand < self.epsilon:                    
                     explores = torch.ones(self.n_agents, dtype= torch.int32)
 
+        actions = []
+
         for q, avail_a, explore in zip(qs[0], avail_actions[0], explores) :
             
             if explore:
@@ -71,7 +75,7 @@ class Controller:
         actions = torch.stack(actions)
 
         self.last_actions = self.one_hot(actions, self.n_actions).unsqueeze(0)
-        return actions.to(device='cpu').numpy(), explores.numpy(), learns.numpy()
+        return actions.numpy(), explores.numpy(), learns.numpy()
 
     def one_hot(self, tensor, n_classes):
         return F.one_hot(tensor.to(dtype=torch.int64), n_classes).to(dtype=torch.float32)
