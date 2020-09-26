@@ -14,7 +14,7 @@ class Learner:
         if self.device == 'cuda':
             self.sys_agent_tar.cuda()
         self.sys_agent_tar.requires_grad_(False)
-        self.update_target()
+        self._sync_target()
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
         self.gamma = args.gamma
@@ -24,9 +24,12 @@ class Learner:
         self.step = 0
         self.learn_mask = args.learn_mask
         self.action_explore = args.action_explore
+        self.optim_type = args.optim_type
         self.args = args
-
-        self.optimizer = torch.optim.Adam(self.sys_agent.parameters(), lr = self.lr, weight_decay=self.l2)
+        if self.optim_type == 'SGD':
+            self.optimizer = torch.optim.SGD(self.sys_agent.parameters(), lr=self.lr, momentum = 0.9, weight_decay=self.l2)            
+        else:
+            self.optimizer = torch.optim.Adam(self.sys_agent.parameters(), lr = self.lr, weight_decay=self.l2)
         
     def train(self, data):
         
@@ -104,11 +107,9 @@ class Learner:
         self.optimizer.zero_grad()
         loss.backward()       
         self.optimizer.step()
+        self.update_target()
 
-        if self.step % self.target_update == 0:
-            self.update_target()
-
-        return loss
+        return loss.item()
 
 
 
@@ -121,10 +122,23 @@ class Learner:
         return F.one_hot(tensor.to(dtype=torch.int64), n_classes).to(dtype=torch.float32)
 
     def update_target(self):
+        if self.target_update >=1:
+            if self.step % self.target_update == 0:
+                self._sync_target()
+        else:
+            cur_state = self.sys_agent.state_dict()
+            tar_state = self.sys_agent_tar.state_dict()
+            for key in tar_state:
+                
+                v_tar = tar_state[key]
+                v_cur = cur_state[key]
+                v_tar.copy_(((1-self.target_update)*v_tar + self.target_update*v_cur).detach())
+                #tar_state[key] = (0.9*v_tar + 0.1*v_cur).detach()            
+            #self.sys_agent_tar.load_state_dict(tar_state)
+    
+    def _sync_target(self):
         self.sys_agent_tar.load_state_dict(self.sys_agent.state_dict())
-            
-
-        
+ 
 
         
 

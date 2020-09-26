@@ -8,38 +8,41 @@ class WritterUtil:
         self.log_every = args.log_every
         self.scalars = {}
     def WriteModel(self, tag, model, step):
-        mean_dict = {}
-        std_dict = {}
-        mean_grad_dict = {}
-        std_grad_dict = {}
+        # mean_dict = {}
+        # std_dict = {}
+        # mean_grad_dict = {}
+        # std_grad_dict = {}
 
         for name, paramater in model.named_parameters():
             data = paramater
-            std, mean = torch.std_mean(data)
+            # std, mean = torch.std_mean(data)
             
             self.writter.add_histogram('param/'+ tag + '/' + name, data, step)
             
-            mean_dict[name] = mean
-            std_dict[name] = std
+            # mean_dict[name] = mean
+            # std_dict[name] = std
             
             grad = data.grad
             if grad != None:
-                std_grad, mean_grad = torch.std_mean(grad)
+                # std_grad, mean_grad = torch.std_mean(grad)
                 self.writter.add_histogram('grad/'+ tag + '/' + name, grad, step)
                 
-                mean_grad_dict[name] = mean_grad
-                std_grad_dict[name] = std_grad
+                # mean_grad_dict[name] = mean_grad
+                # std_grad_dict[name] = std_grad
 
 
-        self.writter.add_scalars('param/'+tag+'/mean', mean_dict, step)
-        self.writter.add_scalars('param/'+tag+'/std', std_dict, step)
-        if len(mean_grad_dict):
-            self.writter.add_scalars('grad/'+tag+'/mean', mean_grad_dict, step)
-        if len(std_grad_dict):
-            self.writter.add_scalars('grad/'+tag+'/std', std_grad_dict, step)
+        # self.writter.add_scalars('param/'+tag+'/mean', mean_dict, step)
+        # self.writter.add_scalars('param/'+tag+'/std', std_dict, step)
+        # if len(mean_grad_dict):
+        #     self.writter.add_scalars('grad/'+tag+'/mean', mean_grad_dict, step)
+        # if len(std_grad_dict):
+        #     self.writter.add_scalars('grad/'+tag+'/std', std_grad_dict, step)
 
 
     def WriteScalar(self, tag, value, step):
+
+        self.writter.add_scalar('raw/'+tag, value, step)
+
         if tag not in self.scalars:
             self.scalars[tag] = [0, step-1, torch.zeros(self.log_every)]
         
@@ -48,12 +51,14 @@ class WritterUtil:
         buffer[n] = value
         n += 1
         if step - last_step >= self.log_every:
-            std, mean = torch.std_mean(buffer[0:n])
-            self.writter.add_scalars(tag, {'high': mean+std/2, 'mean': mean, 'low': mean-std/2}, step)
+            mean = torch.mean(buffer[0:n])
+            self.writter.add_scalar('mean/'+tag, mean, step)
+            self.writter.add_histogram(tag, buffer[0:n], step)
+            
             last_step = step
             n=0
 
 
-        self.scalars[tag][0] = n
-        self.scalars[tag][1] = last_step
+        self.scalars[tag] = [n,last_step,buffer]
+        
         
