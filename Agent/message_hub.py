@@ -9,15 +9,19 @@ class MessageHub(nn.Module):
         self.n_agents = args.n_agents
         self.msg_dim = args.msg_dim
         self.hidden_dim = args.hub_hidden_dim
-        self.fc1 =  nn.Linear(self.n_agents * self.msg_dim, self.hidden_dim)
-        self.fcm =  nn.Linear(self.hidden_dim, self.n_agents * self.msg_dim)
+        self.fc1 = nn.Linear(self.n_agents * self.msg_dim, self.hidden_dim)
+        self.rnn = nn.GRUCell(self.hidden_dim, self.hidden_dim)
+        self.fc2 = nn.Linear(self.hidden_dim, self.n_agents * self.msg_dim)
     
-    def forward(self, messages):
-        x = messages.view(-1,self.n_agents * self.msg_dim)
-        #x = torch.cat(messages,1)
+    def init_hidden(self, n_batch):
+        # make hidden states on same device as model
+        return self.fc1.weight.new_zeros(n_batch, self.hidden_dim)
+
+    def forward(self, messages, hiddens):
+        x = messages.view(-1,self.n_agents * self.msg_dim)        
         x = F.relu(self.fc1(x))
-        m = F.tanh(self.fcm(x))
-        #m_out = torch.chunk(m, self.n_agents, 1)
+        h = self.rnn(x,hiddens)
+        m = F.tanh(self.fc2(h))
         m_out = m.view(-1,self.n_agents, self.msg_dim)
-        return m_out
+        return m_out, h
 

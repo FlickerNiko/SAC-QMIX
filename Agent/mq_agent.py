@@ -18,10 +18,12 @@ class MQAgent(nn.Module):
     def init_hiddens(self, n_batch):
         hiddens = [self.agent.init_hidden(n_batch) for i in range(self.n_agents)]
         hiddens = torch.stack(hiddens,1)
-        return hiddens
+        hub_hiddens = self.msg_hub.init_hidden(n_batch)
+        return hiddens, hub_hiddens
 
     def forward(self, states, actions_explore, actions_last, hiddens):
         
+        hs_agent,hs_hub = hiddens
         ms_send = []
         n_batch = len(states)
         m_zero = states.new_zeros(n_batch, self.msg_dim)
@@ -31,19 +33,19 @@ class MQAgent(nn.Module):
         agent_ids = torch.stack([agent_ids]*n_batch, 0)
 
         for i in range(self.n_agents):
-            ms_send.append(self.agent.forward(states[:,i], agent_ids[:,i],actions_explore[:,i],m_zero,actions_last[:,i] , hiddens[:,i])[1])
+            ms_send.append(self.agent.forward(states[:,i], agent_ids[:,i],actions_explore[:,i],m_zero,actions_last[:,i] , hs_agent[:,i])[1])
 
         ms_send = torch.stack(ms_send,1)
-        ms_recv = self.msg_hub(ms_send)
+        ms_recv, hs_hub_next = self.msg_hub(ms_send, hs_hub)
 
         qs = []
         hs_next = []
 
         for i in range(self.n_agents):
-            q, _, h_next = self.agent.forward(states[:,i], agent_ids[:,i],a_zero, ms_recv[:,i], actions_last[:,i] , hiddens[:,i])
+            q, _, h_next = self.agent.forward(states[:,i], agent_ids[:,i],a_zero, ms_recv[:,i], actions_last[:,i] , hs_agent[:,i])
             qs.append(q)
             hs_next.append(h_next)
 
         qs = torch.stack(qs,1)
         hs_next = torch.stack(hs_next,1)
-        return qs, hs_next
+        return qs, (hs_next,hs_hub_next)

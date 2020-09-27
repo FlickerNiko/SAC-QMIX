@@ -71,7 +71,7 @@ class Experiment:
         buffer = EpisodeBuffer(scheme, args)    
         
         e = 0
-        if args.start_type == 'continue':
+        if not args.new_run:
             e = run_state['episode'] + 1
             sys_agent.load_state_dict(run_state['model_state'])
             learner.optimizer.load_state_dict(run_state['optim_state'])

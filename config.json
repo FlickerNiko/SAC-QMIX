@@ -1,8 +1,7 @@
 {
     "map_name":"3m",        
-    "optim_type":"SGD",
-    "target_update":0.01,
-    
+    "optim_type":"Adam",
+    "target_update":10,    
     "lr":1e-3,
     "l2":0,
     "gamma":0.99,
@@ -15,14 +14,12 @@
     "test_every":10,
     "test_count":10,
     "log_every":40,
-    "n_episodes":20000,
-    "run_name":"ut=0.01,lr=1e-3",
-    "start_type":"new",
+    "n_episodes":20000,    
     "device":"cpu",
-    "hidden_dim":512,
+    "hidden_dim":128,
     "msg_dim":32,
     "rnn_hidden_dim":128,
     "hub_hidden_dim":128,
     "n_batch":16,
-    "buffer_size":256    
+    "buffer_size":256
 }
