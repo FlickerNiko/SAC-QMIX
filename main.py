@@ -10,7 +10,7 @@ from runnner import Runner
 from learner import Learner
 from controller import Controller
 from writter_util import WritterUtil
-
+from experiment import Experiment
 class Args:
     pass
 
@@ -109,42 +109,25 @@ def main(args):
 
 if __name__ == "__main__":
 
-    # args = Args()
-    # args.map_name = '3m'
-    # args.msg_dim = 32
-    # args.rnn_hidden_dim = 128
-    # args.hub_hidden_dim = 128
-    # args.gamma = 0.99
-    # args.lr = 1e-3
-    # args.l2 = 0
-    # args.target_update = 10
-    # args.epsilon = 0.1
-    # args.test_every = 10
-    # args.test_count = 10
-    # args.device = 'cuda'
-    # args.hidden_dim = 512
-    # args.explore_type = 'independent'    #solo, independent, sync
-    # args.learn_mask = False
-    # args.agent_index = True
-    # args.explore_action = True
-    # args.n_batch = 8
-    # args.buffer_size = 256
-    # args.log_every = 20
-    # args.log_num = None
-    # args.n_episodes = 50
-    # args.run_name = 'test_checkpt'
-    # args.start_type = 'continue'   #new continue
-    # args.model = 'mq'
-
+    
     config_path='config.json'
+    new_run = True
     argv = sys.argv
     if len(argv)>1:
         config_path = argv[1]
+    if len(argv)>2:
+        if argv[2] == '-c':  ##continue
+            new_run = False
 
     with open(config_path, 'r') as f:
         config = json.load(f)
     args = Args()
     args.__dict__.update(config)
-    main(args)
+    args.run_name = config_path[0:-5]
+    args.new_run = new_run
+    experiment = Experiment(args)
+    experiment.start()
+    experiment.run()
+    #main(args)
 
     

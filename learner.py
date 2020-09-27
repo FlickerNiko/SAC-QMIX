@@ -132,7 +132,8 @@ class Learner:
                 
                 v_tar = tar_state[key]
                 v_cur = cur_state[key]
-                v_tar.copy_(((1-self.target_update)*v_tar + self.target_update*v_cur).detach())
+                v_tar += self.target_update*(v_cur-v_tar).detach()
+                #v_tar.copy_(((1-self.target_update)*v_tar + self.target_update*v_cur).detach())
                 #tar_state[key] = (0.9*v_tar + 0.1*v_cur).detach()            
             #self.sys_agent_tar.load_state_dict(tar_state)
     

@@ -27,11 +27,10 @@ class Experiment:
     def start(self):
         args = self.args
         path_checkpt = 'checkpoints/'+ args.run_name+ '.tar'
-        if args.start_type == 'continue':
+        if not args.new_run:
             run_state = torch.load(path_checkpt)
             args.__dict__.update(run_state['args'])
-            args.start_type = 'continue'
-
+            
         env = StarCraft2Env(map_name=args.map_name)
         env_info = env.get_env_info()
 
