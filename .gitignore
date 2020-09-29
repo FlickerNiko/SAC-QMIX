@@ -1,0 +1,10 @@
+test.py
+test.py
+runs
+checkpoints
+__pycache__
+mnist_train
+configs
+test.py
+torch_test.py
+launch.json
