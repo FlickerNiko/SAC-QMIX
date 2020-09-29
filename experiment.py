@@ -2,7 +2,8 @@ from smac.env import StarCraft2Env
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import torch
-from Agent import VDNAgent,MQAgent,JALAgent,MQAgent2,JALAgent2
+import os
+from Agent import VDNAgent,MQAgent,JALAgent,MQAgent2,JALAgent2,MQAgent3
 from episode_buffer import EpisodeBuffer
 from runnner import Runner
 from learner import Learner
@@ -26,7 +27,10 @@ class Experiment:
 
     def start(self):
         args = self.args
-        path_checkpt = 'checkpoints/'+ args.run_name+ '.tar'
+        path_checkpts = 'checkpoints'
+        if not os.path.exists(path_checkpts):
+            os.mkdir(path_checkpts)
+        path_checkpt = os.path.join(path_checkpts, args.run_name+ '.tar')
         if not args.new_run:
             run_state = torch.load(path_checkpt)
             args.__dict__.update(run_state['args'])
@@ -45,6 +49,8 @@ class Experiment:
             sys_agent = MQAgent(args)
         elif args.model == 'mq2':
             sys_agent = MQAgent2(args)
+        elif args.model == 'mq3':
+            sys_agent = MQAgent3(args)
         elif args.model == 'jal':
             sys_agent = JALAgent(args)
         else:
@@ -130,3 +136,4 @@ class Experiment:
                 w_util.WriteModel('model', sys_agent, e)
                 self.e = e
                 self.save()
+        self.env.close()
