@@ -121,7 +121,7 @@ class Experiment:
                     reward_avg += episode_reward                
                 win_rate = win_count/args.test_count
                 reward_avg /= args.test_count
-                w_util.WriteScalar('test/reward_avg', reward_avg, e)
+                w_util.WriteScalar('test/reward', reward_avg, e)
                 w_util.WriteScalar('test/win_rate', win_rate, e)
                 
                 print('Test reward = {}, win_rate = {}'.format(reward_avg, win_rate))

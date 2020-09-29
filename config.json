@@ -1,10 +1,10 @@
 {
     "map_name":"3m",        
     "optim_type":"Adam",
-    "target_update":10,    
+    "target_update":33,    
     "lr":1e-3,
-    "l2":0,
-    "gamma":0.99,
+    "l2":1e-4,
+    "gamma":0.95,
     "epsilon":0.1,
     "explore_type":"independent",
     "learn_mask":false,

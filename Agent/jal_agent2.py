@@ -2,10 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class JALAgent(nn.Module):
+class JALAgent2(nn.Module):
     def __init__(self, args):
         
-        super(JALAgent, self).__init__()
+        super(JALAgent2, self).__init__()
 
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
