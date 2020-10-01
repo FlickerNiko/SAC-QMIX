@@ -17,7 +17,8 @@ class Experiment:
 
     def save(self):
         run_state = {}
-        run_state['args'] = self.args.__dict__
+        run_state['args'] = self.args.__dict__.copy()
+        del run_state['args']['new_run']
         run_state['model_state'] = self.sys_agent.state_dict()
         run_state['optim_state'] = self.learner.optimizer.state_dict()
         run_state['episode'] = self.e            
@@ -35,7 +36,7 @@ class Experiment:
             run_state = torch.load(path_checkpt)
             args.__dict__.update(run_state['args'])
             
-        env = StarCraft2Env(map_name=args.map_name)
+        env = StarCraft2Env(map_name=args.map_name, window_size_x=640, window_size_y=480)
         env_info = env.get_env_info()
 
         n_actions = env_info["n_actions"]
