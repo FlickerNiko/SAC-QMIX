@@ -8,3 +8,4 @@ configs
 test.py
 torch_test.py
 launch.json
+.vscode
