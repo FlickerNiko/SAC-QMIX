@@ -19,6 +19,7 @@ class Experiment:
         run_state = {}
         run_state['args'] = self.args.__dict__
         run_state['model_state'] = self.sys_agent.state_dict()
+        run_state['target_state'] = self.learner.sys_agent_tar.state_dict()
         run_state['optim_state'] = self.learner.optimizer.state_dict()
         run_state['episode'] = self.e            
         run_state['buffer_state'] = self.buffer.state_dict()
@@ -80,6 +81,7 @@ class Experiment:
         if not args.new_run:
             e = run_state['episode'] + 1
             sys_agent.load_state_dict(run_state['model_state'])
+            learner.sys_agent_tar.load_state_dict(run_state['target_state'])
             learner.optimizer.load_state_dict(run_state['optim_state'])
             buffer.load_state_dict(run_state['buffer_state'])
 
