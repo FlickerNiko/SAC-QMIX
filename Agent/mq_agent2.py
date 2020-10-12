@@ -5,7 +5,7 @@ from .mrnn_agent import RNNAgent
 from .message_hub import MessageHub
 
 
-
+# hub_rnn, action_explore_assumption
 class MQAgent2(nn.Module):
     def __init__(self, args):
         super(MQAgent2, self).__init__()

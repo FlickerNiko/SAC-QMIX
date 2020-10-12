@@ -3,7 +3,7 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import torch
 import os
-from Agent import VDNAgent,MQAgent,JALAgent,MQAgent2,JALAgent2,MQAgent3
+from Agent import VDNAgent,MQAgent,JALAgent,MQAgent2,JALAgent2,MQAgent3,MQAgent4
 from episode_buffer import EpisodeBuffer
 from runnner import Runner
 from learner import Learner
@@ -33,9 +33,9 @@ class Experiment:
         if not os.path.exists(path_checkpts):
             os.mkdir(path_checkpts)
         path_checkpt = os.path.join(path_checkpts, args.run_name+ '.tar')
-        if not args.new_run:
-            run_state = torch.load(path_checkpt)
-            args.__dict__.update(run_state['args'])
+        # if not args.new_run:
+        #     run_state = torch.load(path_checkpt)
+        #     args.__dict__.update(run_state['args'])            
             
         env = StarCraft2Env(map_name=args.map_name, window_size_x=640, window_size_y=480)
         env_info = env.get_env_info()
@@ -53,6 +53,8 @@ class Experiment:
             sys_agent = MQAgent2(args)
         elif args.model == 'mq3':
             sys_agent = MQAgent3(args)
+        elif args.model == 'mq4':
+            sys_agent = MQAgent4(args)
         elif args.model == 'jal':
             sys_agent = JALAgent(args)
         else:
@@ -80,9 +82,11 @@ class Experiment:
         
         e = 0
         if not args.new_run:
+            run_state = torch.load(path_checkpt)
             e = run_state['episode'] + 1
             sys_agent.load_state_dict(run_state['model_state'])
             learner.sys_agent_tar.load_state_dict(run_state['target_state'])
+            #learner.sys_agent_tar.load_state_dict(run_state['model_state'])
             learner.optimizer.load_state_dict(run_state['optim_state'])
             buffer.load_state_dict(run_state['buffer_state'])
 
