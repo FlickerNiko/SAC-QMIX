@@ -3,7 +3,7 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import torch
 import os
-from Agent import VDNAgent,MQAgent,JALAgent,MQAgent2,JALAgent2,MQAgent3,MQAgent4
+from Agent import VDNAgent,MQAgent,JALAgent,JALAgent2
 from episode_buffer import EpisodeBuffer
 from runnner import Runner
 from learner import Learner
@@ -48,13 +48,7 @@ class Experiment:
         args.input_dim = env_info['obs_shape']
         args.episode_limit = env_info['episode_limit']
         if args.model == 'mq':
-            sys_agent = MQAgent(args)
-        elif args.model == 'mq2':
-            sys_agent = MQAgent2(args)
-        elif args.model == 'mq3':
-            sys_agent = MQAgent3(args)
-        elif args.model == 'mq4':
-            sys_agent = MQAgent4(args)
+            sys_agent = MQAgent(args)                    
         elif args.model == 'jal':
             sys_agent = JALAgent(args)
         else:

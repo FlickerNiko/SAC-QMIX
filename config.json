@@ -10,9 +10,11 @@
     "epsilon_len":750,
     "explore_type":"independent",
     "learn_mask":false,
-    "agent_index":true,
+    "agent_index":true,    
+    "model":"mq",
+    "rnn_hub":true,
     "action_explore":true,
-    "model":"mq2",
+    "counter_factual":false,
     "test_every":10,
     "test_count":10,
     "log_every":40,
@@ -22,6 +24,6 @@
     "msg_dim":32,
     "rnn_hidden_dim":128,
     "hub_hidden_dim":128,
-    "n_batch":16,
+    "n_batch":4,
     "buffer_size":256
 }

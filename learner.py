@@ -102,8 +102,11 @@ class Learner:
         if self.learn_mask:
             qs *= learns
             qs_tar *= learns
-
-        loss = F.mse_loss(qs,qs_tar)
+       
+        loss = F.mse_loss(qs,qs_tar)        
+        valid_rate = len(torch.nonzero(valid))/valid.numel()
+        loss /= valid_rate
+        
         self.optimizer.zero_grad()
         loss.backward()       
         self.optimizer.step()

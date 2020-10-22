@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class MessageHub(nn.Module):
+class MsgHub(nn.Module):
     def __init__(self, args):
-        super(MessageHub, self).__init__()
+        super(MsgHub, self).__init__()
         self.n_agents = args.n_agents
         self.msg_dim = args.msg_dim
         self.hidden_dim = args.hub_hidden_dim
