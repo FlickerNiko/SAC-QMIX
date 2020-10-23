@@ -7,7 +7,8 @@ class EpisodeBuffer:
         self.scheme = scheme.copy()
         self.buffer_size = args.buffer_size
         self.max_seq_length = args.episode_limit
-        self.device = args.device
+        # self.device = args.device
+        self.device = 'cpu'
         self._setup_data()
 
     def _setup_data(self):

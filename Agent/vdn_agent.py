@@ -7,7 +7,6 @@ class VDNAgent(nn.Module):
     def __init__(self, args):
         super(VDNAgent, self).__init__()
         self.n_agents = args.n_agents
-        self.device = args.device
         self.agent = RNNAgent(args)
 
     def init_hiddens(self, n_batch):
@@ -19,7 +18,7 @@ class VDNAgent(nn.Module):
         n_batch = states.shape[0]
         qs = []
         hs_next = []
-        indices = torch.arange(0,self.n_agents,dtype=torch.int64, device=self.device)    # n_batch, n_agents, n_agents        
+        indices = torch.arange(0,self.n_agents,dtype=torch.int64, device=states.device)    # n_batch, n_agents, n_agents        
         indices = F.one_hot(indices, self.n_agents).to(dtype=torch.float32)
         indices = torch.stack([indices]*n_batch, 0)
         for i in range(self.n_agents):

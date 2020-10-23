@@ -35,13 +35,13 @@ class Learner:
         
         self.step += 1
         
-        obs = data['obs'].to(device=self.device)
-        actions = data['actions'].to(device=self.device)
-        reward = data['reward'].to(device=self.device)
-        valid = data['valid'].to(device=self.device)
-        avail_actions = data['avail_actions'].to(device=self.device)
-        explores = data['explores'].to(device=self.device)
-        learns = data['learns'].to(device=self.device)
+        obs = data['obs'].to(device=self.device, non_blocking=True)
+        actions = data['actions'].to(device=self.device, non_blocking=True)
+        reward = data['reward'].to(device=self.device, non_blocking=True)
+        valid = data['valid'].to(device=self.device, non_blocking=True)
+        avail_actions = data['avail_actions'].to(device=self.device, non_blocking=True)
+        explores = data['explores'].to(device=self.device, non_blocking=True)
+        learns = data['learns'].to(device=self.device, non_blocking=True)
 
         n_batch = obs.shape[0]
         T = obs.shape[1]
@@ -104,7 +104,7 @@ class Learner:
             qs_tar *= learns
        
         loss = F.mse_loss(qs,qs_tar)        
-        valid_rate = len(torch.nonzero(valid))/valid.numel()
+        valid_rate = len(torch.nonzero(valid, as_tuple=False))/valid.numel()
         loss /= valid_rate
         
         self.optimizer.zero_grad()
