@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import cuprof
 
 class Learner:
     def __init__(self, sys_agent, args):
@@ -32,7 +32,7 @@ class Learner:
             self.optimizer = torch.optim.Adam(self.sys_agent.parameters(), lr = self.lr, weight_decay=self.l2)
         
     def train(self, data):
-        
+        cuprof.cu_prof_start()
         self.step += 1
         
         obs = data['obs'].to(device=self.device, non_blocking=True)
@@ -111,7 +111,7 @@ class Learner:
         loss.backward()       
         self.optimizer.step()
         self.update_target()
-
+        cuprof.cu_prof_stop()
         return loss.item()
 
 
