@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import cuprof
 
 class Learner:
     def __init__(self, sys_agent, args):
@@ -32,16 +32,16 @@ class Learner:
             self.optimizer = torch.optim.Adam(self.sys_agent.parameters(), lr = self.lr, weight_decay=self.l2)
         
     def train(self, data):
-        
+        cuprof.cu_prof_start()
         self.step += 1
         
-        obs = data['obs'].to(device=self.device, non_blocking=True)
-        actions = data['actions'].to(device=self.device, non_blocking=True)
-        reward = data['reward'].to(device=self.device, non_blocking=True)
-        valid = data['valid'].to(device=self.device, non_blocking=True)
-        avail_actions = data['avail_actions'].to(device=self.device, non_blocking=True)
-        explores = data['explores'].to(device=self.device, non_blocking=True)
-        learns = data['learns'].to(device=self.device, non_blocking=True)
+        obs = data['obs'].to(device=self.device)
+        actions = data['actions'].to(device=self.device)
+        reward = data['reward'].to(device=self.device)
+        valid = data['valid'].to(device=self.device)
+        avail_actions = data['avail_actions'].to(device=self.device)
+        explores = data['explores'].to(device=self.device)
+        learns = data['learns'].to(device=self.device)
 
         n_batch = obs.shape[0]
         T = obs.shape[1]
@@ -111,7 +111,7 @@ class Learner:
         loss.backward()       
         self.optimizer.step()
         self.update_target()
-
+        cuprof.cu_prof_stop()
         return loss.item()
 
 
