@@ -35,13 +35,13 @@ class Learner:
         cuprof.cu_prof_start()
         self.step += 1
         
-        obs = data['obs'].to(device=self.device)
-        actions = data['actions'].to(device=self.device)
-        reward = data['reward'].to(device=self.device)
-        valid = data['valid'].to(device=self.device)
-        avail_actions = data['avail_actions'].to(device=self.device)
-        explores = data['explores'].to(device=self.device)
-        learns = data['learns'].to(device=self.device)
+        obs = data['obs'].to(device=self.device, non_blocking=True)
+        actions = data['actions'].to(device=self.device, non_blocking=True)
+        reward = data['reward'].to(device=self.device, non_blocking=True)
+        valid = data['valid'].to(device=self.device, non_blocking=True)
+        avail_actions = data['avail_actions'].to(device=self.device, non_blocking=True)
+        explores = data['explores'].to(device=self.device, non_blocking=True)
+        learns = data['learns'].to(device=self.device, non_blocking=True)
 
         n_batch = obs.shape[0]
         T = obs.shape[1]
