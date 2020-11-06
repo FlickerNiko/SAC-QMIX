@@ -3,11 +3,11 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import torch
 import os
-from Agent import VDNAgent,MQAgent,JALAgent,JALAgent2
+#from Agent import VDNAgent,MQAgent,JALAgent,JALAgent2
+#from learner import Learner
+#from controller import Controller
 from episode_buffer import EpisodeBuffer
 from runnner import Runner
-from learner import Learner
-from controller import Controller
 from writter_util import WritterUtil
 
 class Experiment:
@@ -47,6 +47,20 @@ class Experiment:
         args.n_actions = n_actions
         args.input_dim = env_info['obs_shape']
         args.episode_limit = env_info['episode_limit']
+
+        if args.actor_critic:
+            if args.msg_onehot:
+                from Agent.mq_ac2 import Controller,Learner,MQAgent              
+            else:
+                from Agent.mq_ac import Controller,Learner,MQAgent              
+        elif args.model_idp:
+            from Agent.mq_idp import Controller,Learner,MQAgent
+        else:
+            from learner import Learner
+            from controller import Controller
+            from Agent import VDNAgent,MQAgent,JALAgent
+        
+
         if args.model == 'mq':
             sys_agent = MQAgent(args)                    
         elif args.model == 'jal':
@@ -59,20 +73,20 @@ class Experiment:
         
         writter = SummaryWriter('runs/'+ args.run_name)
         w_util = WritterUtil(writter,args)
-
+                
         ctrler = Controller(sys_agent,args)
         runner = Runner(env,ctrler,args)
         learner = Learner(sys_agent, args)
+
         scheme = {}
         scheme['obs'] = {'shape':(n_agents,args.input_dim), 'dtype': torch.float32}
         scheme['valid'] = {'shape':(), 'dtype': torch.int32}
         scheme['actions'] = {'shape':(n_agents,), 'dtype': torch.int32}
         scheme['avail_actions'] = {'shape':(n_agents, n_actions), 'dtype': torch.int32}
         scheme['reward'] = {'shape':(), 'dtype': torch.float32}
-        scheme['explores'] = {'shape':(n_agents,), 'dtype': torch.int32}
-        scheme['learns'] = {'shape':(n_agents,), 'dtype': torch.int32}
-
-        buffer = EpisodeBuffer(scheme, args)    
+        scheme['explores'] = {'shape':(n_agents,), 'dtype': torch.int32}        
+        scheme['messages'] = {'shape':(n_agents,args.msg_dim), 'dtype': torch.float32}
+        buffer = EpisodeBuffer(scheme, args)
         
         e = 0
         if not args.new_run:
@@ -110,7 +124,7 @@ class Experiment:
         loss = None
         for e in range(e ,args.n_episodes):
             
-            data, episode_reward =  runner.run()        
+            data, episode_reward, _ =  runner.run()        
             buffer.add_episode(data)        
             data = buffer.sample(args.n_batch)        
             w_util.WriteScalar('train/reward', episode_reward, e)
@@ -122,8 +136,8 @@ class Experiment:
                 win_count = 0
                 reward_avg = 0
                 for i in range(args.test_count):
-                    _, episode_reward =  runner.run(test_mode=True)
-                    if episode_reward > 18:
+                    _, episode_reward, steps =  runner.run(test_mode=True)
+                    if steps < args.episode_limit:
                         win_count += 1
                     reward_avg += episode_reward                
                 win_rate = win_count/args.test_count
@@ -133,8 +147,9 @@ class Experiment:
                 
                 print('Test reward = {}, win_rate = {}'.format(reward_avg, win_rate))
 
-            if e % args.log_every == 0:
-                w_util.WriteModel('model', sys_agent, e)
-                self.e = e
-                self.save()
+            #if e % args.log_every == 0:
+                
+                #w_util.WriteModel('model', sys_agent, e)
+                #self.e = e
+                #self.save()
         self.env.close()

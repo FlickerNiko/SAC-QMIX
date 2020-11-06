@@ -19,19 +19,22 @@ class Learner:
         self.n_actions = args.n_actions
         self.gamma = args.gamma
         self.lr = args.lr
+        self.lr_actor = args.lr_actor
         self.l2 = args.l2
         self.target_update = args.target_update
-        self.step = 0
+        self.step = 0        
         self.action_explore = args.action_explore
         self.optim_type = args.optim_type
         self.args = args
         if self.optim_type == 'SGD':
-            self.optimizer = torch.optim.SGD(self.sys_agent.parameters(), lr=self.lr, momentum = 0.9, weight_decay=self.l2)            
+            self.optim_actor = torch.optim.SGD(self.sys_agent.actor_parameters(), lr=self.lr_actor, momentum = 0.9, weight_decay=self.l2)
+            self.optim_critic = torch.optim.SGD(self.sys_agent.critic_parameters(), lr=self.lr, momentum = 0.9, weight_decay=self.l2)
         else:
-            self.optimizer = torch.optim.Adam(self.sys_agent.parameters(), lr = self.lr, weight_decay=self.l2)
+            self.optim_actor = torch.optim.Adam(self.sys_agent.actor_parameters(), lr = self.lr_actor, weight_decay=self.l2)
+            self.optim_critic = torch.optim.Adam(self.sys_agent.critic_parameters(), lr = self.lr, weight_decay=self.l2)
         
     def train(self, data):
-
+                
         self.step += 1
         
         obs = data['obs'].to(device=self.device, non_blocking=True)
@@ -39,8 +42,8 @@ class Learner:
         reward = data['reward'].to(device=self.device, non_blocking=True)
         valid = data['valid'].to(device=self.device, non_blocking=True)
         avail_actions = data['avail_actions'].to(device=self.device, non_blocking=True)
-        explores = data['explores'].to(device=self.device, non_blocking=True)
- 
+        explores = data['explores'].to(device=self.device, non_blocking=True)        
+        messages = data['messages'].to(device=self.device, non_blocking=True)
         n_batch = obs.shape[0]
         T = obs.shape[1]
 
@@ -48,6 +51,8 @@ class Learner:
         hiddens_tar = self.sys_agent_tar.init_hiddens(n_batch)
         a_last = torch.zeros(n_batch, self.n_agents, self.n_actions, device=self.device)
         Qs = []
+        qcs = []
+        qms = []
         Qs_tar = []
         qs = []
         qs_tar = []
@@ -57,53 +62,69 @@ class Learner:
             actions_explore = actions_onehot*explores.unsqueeze(-1)
         else:
             actions_explore = torch.zeros_like(actions_onehot)
-        ae_zero = torch.zeros_like(actions_explore)        
+        ae_zero = torch.zeros_like(actions_explore)
 
         for i in range(T):
-            #a = actions[:,i]
-            #v = valid[:,i]
-                        
+
+            qc = self.sys_agent.critic_forward(obs[:,i], actions_explore[:,i], a_last, hiddens, messages[:,i])
             Q, hiddens = self.sys_agent.forward(obs[:,i], actions_explore[:,i], a_last,hiddens)
             with torch.no_grad():
                 Q_tar, hiddens_tar = self.sys_agent_tar.forward(obs[:,i], ae_zero[:,i], a_last, hiddens_tar)
-
+            
             Qs.append(Q)
+            qcs.append(qc)            
             Qs_tar.append(Q_tar)
             a_last = actions_onehot[:,i]
 
         Qs = torch.stack(Qs,1)
+        qcs = torch.stack(qcs,1)        
         Qs_tar = torch.stack(Qs_tar,1)
 
-        Qs -= (1-avail_actions)*1e38
+        Qs -= (1-avail_actions) * 1e38
         Qs *= valid.view(list(valid.shape) + [1] * (Qs.ndim - valid.ndim))
         Qs_tar *= valid.view(list(valid.shape) + [1] * (Qs.ndim - valid.ndim))
         qs = self.gather_end(Qs,actions)
         
-
-        for i in range(T-1):
-            #a = actions[:,i]
-            r = reward[:,i]
-            
+        for i in range(T-1):            
+            r = reward[:,i]            
             a_next = torch.argmax(Qs[:,i+1],2)            
             q_next = self.gather_end(Qs_tar[:,i+1],a_next)
             q_tar = r.unsqueeze(1) + self.gamma * q_next
-            qs_tar.append(q_tar)
-
-        #i = T - 1
+            qs_tar.append(q_tar)        
 
         qs_tar.append(reward[:, T-1].unsqueeze(1) + reward.new_zeros(qs_tar[-1].shape))
 
         qs_tar = torch.stack(qs_tar,1)
-      
-        loss = F.mse_loss(qs,qs_tar)        
         valid_rate = len(torch.nonzero(valid, as_tuple=False))/valid.numel()
-        loss /= valid_rate
+
+        loss_critic = F.mse_loss(qs,qs_tar) + F.mse_loss(qcs,qs_tar.mean(2,True))        
+        loss_critic /= valid_rate        
+        self.optim_critic.zero_grad()
+        loss_critic.backward()       
+        self.optim_critic.step()
+
+        # train_actor
+        self.sys_agent.mq_critic.requires_grad_(False)
+        hiddens = self.sys_agent.init_hiddens(n_batch)
+        a_last = torch.zeros(n_batch, self.n_agents, self.n_actions, device=self.device)
         
-        self.optimizer.zero_grad()
-        loss.backward()       
-        self.optimizer.step()
-        self.update_target()
-        return loss.item()
+        for i in range(T):            
+            qm, hiddens = self.sys_agent.train_actor_forward(obs[:,i], actions_explore[:,i], a_last, hiddens)            
+            qms.append(qm)            
+            a_last = actions_onehot[:,i]
+        
+        qms = torch.stack(qms,1) 
+        qms *= valid.view(list(valid.shape) + [1] * (qms.ndim - valid.ndim))
+
+        self.optim_actor.zero_grad()
+        loss_msg = - torch.mean(qms)
+        loss_msg /= valid_rate
+        loss_msg.backward()
+        self.optim_actor.step()
+        self.sys_agent.mq_critic.requires_grad_(True)
+         
+        self.update_target()        
+        return loss_critic.item()
 
 
 

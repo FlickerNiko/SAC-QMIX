@@ -50,6 +50,7 @@ class EpisodeBuffer:
         index_ep = (self.index_st + self.n_sample - 1) % self.buffer_size
         
         for k, v in data.items():
+
             ep_len = len(v)
             dtype = self.scheme[k]['dtype']
             self.data[k][index_ep].zero_()

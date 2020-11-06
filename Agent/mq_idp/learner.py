@@ -21,7 +21,7 @@ class Learner:
         self.lr = args.lr
         self.l2 = args.l2
         self.target_update = args.target_update
-        self.step = 0
+        self.step = 0        
         self.action_explore = args.action_explore
         self.optim_type = args.optim_type
         self.args = args
@@ -33,14 +33,14 @@ class Learner:
     def train(self, data):
 
         self.step += 1
-        
+
         obs = data['obs'].to(device=self.device, non_blocking=True)
         actions = data['actions'].to(device=self.device, non_blocking=True)
         reward = data['reward'].to(device=self.device, non_blocking=True)
         valid = data['valid'].to(device=self.device, non_blocking=True)
         avail_actions = data['avail_actions'].to(device=self.device, non_blocking=True)
-        explores = data['explores'].to(device=self.device, non_blocking=True)
- 
+        explores = data['explores'].to(device=self.device, non_blocking=True)        
+        messages = data['messages'].to(device=self.device, non_blocking=True)
         n_batch = obs.shape[0]
         T = obs.shape[1]
 
@@ -48,6 +48,7 @@ class Learner:
         hiddens_tar = self.sys_agent_tar.init_hiddens(n_batch)
         a_last = torch.zeros(n_batch, self.n_agents, self.n_actions, device=self.device)
         Qs = []
+        Qms = []
         Qs_tar = []
         qs = []
         qs_tar = []
@@ -58,55 +59,54 @@ class Learner:
         else:
             actions_explore = torch.zeros_like(actions_onehot)
         ae_zero = torch.zeros_like(actions_explore)        
+        ms_index = torch.argmax(messages, 3)
+        
 
         for i in range(T):
-            #a = actions[:,i]
-            #v = valid[:,i]
-                        
-            Q, hiddens = self.sys_agent.forward(obs[:,i], actions_explore[:,i], a_last,hiddens)
+            
+            # Qm = self.sys_agent.message_forward(obs[:,i], actions_explore[:,i], a_last, hiddens)
+            Q, Qm, hiddens = self.sys_agent.forward(obs[:,i], actions_explore[:,i], a_last, hiddens)
             with torch.no_grad():
-                Q_tar, hiddens_tar = self.sys_agent_tar.forward(obs[:,i], ae_zero[:,i], a_last, hiddens_tar)
+                Q_tar, _ , hiddens_tar= self.sys_agent_tar.forward(obs[:,i], ae_zero[:,i], a_last, hiddens_tar)
 
             Qs.append(Q)
+            Qms.append(Qm)
             Qs_tar.append(Q_tar)
             a_last = actions_onehot[:,i]
 
         Qs = torch.stack(Qs,1)
+        Qms = torch.stack(Qms,1)
         Qs_tar = torch.stack(Qs_tar,1)
-
+        Qs_tar = Qs_tar.detach()
         Qs -= (1-avail_actions)*1e38
         Qs *= valid.view(list(valid.shape) + [1] * (Qs.ndim - valid.ndim))
         Qs_tar *= valid.view(list(valid.shape) + [1] * (Qs.ndim - valid.ndim))
+        Qms *= valid.view(list(valid.shape) + [1] * (Qms.ndim - valid.ndim))
+
         qs = self.gather_end(Qs,actions)
-        
+        qms = self.gather_end(Qms,ms_index)
 
         for i in range(T-1):
-            #a = actions[:,i]
-            r = reward[:,i]
             
-            a_next = torch.argmax(Qs[:,i+1],2)            
+            r = reward[:,i]
+            a_next = torch.argmax(Qs[:,i+1],2)
             q_next = self.gather_end(Qs_tar[:,i+1],a_next)
             q_tar = r.unsqueeze(1) + self.gamma * q_next
             qs_tar.append(q_tar)
 
-        #i = T - 1
-
         qs_tar.append(reward[:, T-1].unsqueeze(1) + reward.new_zeros(qs_tar[-1].shape))
-
         qs_tar = torch.stack(qs_tar,1)
-      
-        loss = F.mse_loss(qs,qs_tar)        
+
+        loss = F.mse_loss(qs,qs_tar) + F.mse_loss(qms,qs_tar)
+
         valid_rate = len(torch.nonzero(valid, as_tuple=False))/valid.numel()
         loss /= valid_rate
         
         self.optimizer.zero_grad()
         loss.backward()       
         self.optimizer.step()
-        self.update_target()
+        self.update_target()    
         return loss.item()
-
-
-
         
     def gather_end(self, input, index):
         index = torch.unsqueeze(index,-1).to(dtype=torch.int64)

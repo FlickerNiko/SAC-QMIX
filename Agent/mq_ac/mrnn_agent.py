@@ -26,6 +26,5 @@ class RNNAgent(nn.Module):
         x = F.relu(self.fc1(x))
         h = self.rnn(x, hidden_state)
         q = self.fc2(h)
-        # m = F.tanh(self.fcm(h))
-        m = self.fcm(h)
+        m = F.relu(self.fcm(h))
         return q, m, h
