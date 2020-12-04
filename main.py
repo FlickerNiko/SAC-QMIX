@@ -5,7 +5,7 @@ import json
 import torch
 import sys
 import os
-from experiment import Experiment
+from SAC.experiment import Experiment
 
 class Args:
     pass
