@@ -73,6 +73,7 @@ class Experiment:
         sys_critic = VDNCritic(args)
         if args.device == 'cuda':        
             sys_actor.cuda()
+            sys_critic.cuda()
         
         writter = SummaryWriter('runs/'+ args.run_name)
         w_util = WritterUtil(writter,args)
