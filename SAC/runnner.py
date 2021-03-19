@@ -13,7 +13,7 @@ class Runner:
         
         terminated = False
         episode_reward = 0
-        data = {'obs':[],'valid':[],'actions':[],'avail_actions':[],'reward':[]}
+        data = {'state':[], 'obs':[],'valid':[],'actions':[],'avail_actions':[],'reward':[]}
 
         self.env.reset()        
         self.controller.new_episode()
@@ -21,7 +21,7 @@ class Runner:
         while not terminated:
             steps += 1
             obs = self.env.get_obs()
-            #obs = self.env.get_state()
+            state = self.env.get_state()
             avail_actions = self.env.get_avail_actions()
             explore = False
             
@@ -29,16 +29,18 @@ class Runner:
                 explore = True
                 
             actions = self.controller.get_actions(obs, avail_actions, explore)
-            reward, terminated, _ = self.env.step(actions)
+            reward, terminated, info = self.env.step(actions)
             episode_reward += reward
 
+            data['state'].append(state)
             data['obs'].append(obs)
             data['valid'].append(1)
             data['actions'].append(actions)
             data['avail_actions'].append(avail_actions)            
             data['reward'].append(reward)
-            
 
-        return data, episode_reward, steps
+        #data['steps'] = steps
+        win_tag = True if 'battle_won' in info and info['battle_won'] else False
+        return data, episode_reward, win_tag
 
             

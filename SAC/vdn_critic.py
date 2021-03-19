@@ -7,25 +7,25 @@ class VDNCritic(nn.Module):
     def __init__(self, args):
         super(VDNCritic, self).__init__()
         self.n_agents = args.n_agents
+        self.n_actions = args.n_actions
         self.agent = Critic(args)
 
+
+
     def init_hiddens(self, n_batch):
-        hiddens = [self.agent.init_hidden(n_batch) for i in range(self.n_agents)]
-        hiddens = torch.stack(hiddens,1)
+        hiddens = self.agent.init_hidden(n_batch*self.n_agents)
+        hiddens = hiddens.reshape(n_batch,self.n_agents,-1)
         return hiddens
 
-    def forward(self, states, actions, hiddens):
+    def forward(self, states, avail_actions, hiddens):
+
         n_batch = states.shape[0]
-        ys = []
-        hs_next = []
-        indices = torch.arange(0,self.n_agents,dtype=torch.int64, device=states.device)    # n_batch, n_agents, n_agents        
-        indices = F.one_hot(indices, self.n_agents).to(dtype=torch.float32)
-        indices = torch.stack([indices]*n_batch, 0)
-        for i in range(self.n_agents):
-            y, h_next = self.agent.forward(states[:,i], actions[:,i], indices[:,i], hiddens[:,i])
-            ys.append(y)
-            hs_next.append(h_next)        
-        ys = torch.stack(ys,1)
-        hs_next = torch.stack(hs_next,1)
+        states = states.reshape(-1,states.shape[-1])
+        hiddens = hiddens.reshape(-1,hiddens.shape[-1])
+        avail_actions = avail_actions.reshape(-1,avail_actions.shape[-1])
+        ys, hs_next = self.agent.forward(states, avail_actions, hiddens)
+        ys = ys.reshape(n_batch,self.n_agents,-1)
+        hs_next = hs_next.reshape(n_batch,self.n_agents,-1)
+        
         return ys, hs_next
 

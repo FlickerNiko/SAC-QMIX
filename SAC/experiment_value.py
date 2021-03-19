@@ -8,8 +8,8 @@ import os
 from datetime import datetime
 #from .learner_q import Learner
 #from .controller_q import Controller
-from .learner_mix2 import Learner
-from .controller import Controller
+from .learner_q import Learner
+from .controller_q import Controller
 from .episode_buffer import EpisodeBuffer
 from .runnner import Runner
 from writter_util import WritterUtil
@@ -45,16 +45,14 @@ class Experiment:
         env_info = env.get_env_info()
 
         n_actions = env_info["n_actions"]
-        n_agents = env_info["n_agents"]              
+        n_agents = env_info["n_agents"]
         
         args.n_agents = n_agents
         args.n_actions = n_actions
         args.obs_dim = env_info['obs_shape']
         args.input_dim = args.obs_dim
         if args.agent_id:
-            args.input_dim += args.n_agents
-        if args.last_action:        
-            args.input_dim += args.n_actions        
+            args.input_dim += args.n_agents        
         args.state_dim = env_info['state_shape']
         args.episode_limit = env_info['episode_limit']
 
@@ -87,7 +85,7 @@ class Experiment:
         w_util = WritterUtil(writter,args)
         learner = Learner(args)
         #sys_actor = learner.sys_actor        
-        ctrler = Controller(learner.sys_actor,args)
+        ctrler = Controller(learner.sys_critic,args)
         runner = Runner(env,ctrler,args)
         
 
@@ -137,25 +135,21 @@ class Experiment:
 
         loss = None
         for e in range(e ,args.n_episodes):
-            
-            explore = e%1
+                        
             data, episode_reward, _ =  runner.run()                    
             buffer.add_episode(data)
-            data = buffer.sample(args.n_batch, args.top_n)        
+            data = buffer.sample(args.n_batch)        
             w_util.WriteScalar('train/reward', episode_reward, e)
             if data:
                 learn_info = learner.train(data)                        
                 w_util.WriteScalar('train/loss', learn_info['loss'], e)
                 w_util.WriteScalar('train/q', learn_info['q'], e)
-                w_util.WriteScalar('train/q_total', learn_info['q_total'], e)
-                w_util.WriteScalar('train/h', learn_info['h'], e)
-                w_util.WriteScalar('train/alpha', learn_info['alpha'], e)
-                w_util.WriteScalar('train/max_grad', learn_info['max_grad'], e)
-                w_util.WriteScalar('train/max_p', learn_info['max_p'], e)
-                print("Episode {}, reward = {}， loss = {},  q_total= {},  h= {},  max_grad = {}".format\
-                    (e, episode_reward, learn_info['loss'],learn_info['q_total'],learn_info['h'],learn_info['max_grad']))
-                # print("Episode {}, reward = {}， loss = {},  q= {}".format\
-                #     (e, episode_reward, learn_info['loss'],learn_info['q']))
+                #w_util.WriteScalar('train/h', learn_info['h'], e)
+                #w_util.WriteScalar('train/alpha', learn_info['alpha'], e)
+                # print("Episode {}, reward = {}， loss = {},  q= {},  h= {},  alpha = {}".format\
+                #     (e, episode_reward, learn_info['loss'],learn_info['q'],learn_info['h'],learn_info['alpha']))
+                print("Episode {}, reward = {}， loss = {},  q= {}".format\
+                    (e, episode_reward, learn_info['loss'],learn_info['q']))
             else:
                 print("Episode {}, reward = {}".format(e, episode_reward))
             if e % args.test_every == 0:

@@ -20,7 +20,7 @@ class EpisodeBuffer:
             shape = (self.buffer_size, self.max_seq_length) + v['shape']
             self.data[k] = torch.zeros(shape, dtype=v['dtype'],device=self.device)
 
-    def sample(self, batch_size):
+    def sample(self, batch_size, top_n = 0):
         if self.n_sample < batch_size:
             return None
 
@@ -29,7 +29,8 @@ class EpisodeBuffer:
             ep_id %= self.buffer_size
             return ep_id
 
-        ep_ids = np.random.choice(self.n_sample, batch_size, replace=False)
+        ep_ids = np.random.choice(self.n_sample - top_n, batch_size - top_n, replace=False)
+        ep_ids = list(ep_ids) + [self.n_sample-i-1 for i in range(top_n)]# [self.n_sample -1]
         ep_ids = list(map(trans_ids, ep_ids))
 
         ret = {}
