@@ -7,7 +7,12 @@ class WritterUtil:
         self.writter = writter
         self.log_every = args.log_every
         self.scalars = {}
-    def WriteModel(self, tag, model, step):
+        self.step = 0
+
+    def new_step(self):
+        self.step += 1
+
+    def WriteModel(self, tag, model):
         # mean_dict = {}
         # std_dict = {}
         # mean_grad_dict = {}
@@ -39,8 +44,9 @@ class WritterUtil:
         #     self.writter.add_scalars('grad/'+tag+'/std', std_grad_dict, step)
 
 
-    def WriteScalar(self, tag, value, step):
-
+    def WriteScalar(self, tag, value):
+        
+        step = self.step
         self.writter.add_scalar('raw/'+tag, value, step)
 
         if tag not in self.scalars:

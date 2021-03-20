@@ -18,16 +18,14 @@ if __name__ == "__main__":
     new_run = True
     argv = sys.argv
     if len(argv)>1:
-        config_path = argv[1]
-    if len(argv)>2:
-        if argv[2] == '-c':  ##continue
+        if argv[1] == '-c':  ##continue
             new_run = False
 
     with open(config_path, 'r') as f:
         config = json.load(f)
     args = Args()
     args.__dict__.update(config)
-    args.run_name = os.path.split(config_path)[-1][0:-5]
+    #args.run_name = os.path.split(config_path)[-1][0:-5]
     args.new_run = new_run
     experiment = Experiment(args)
     experiment.start()
