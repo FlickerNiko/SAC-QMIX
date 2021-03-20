@@ -14,8 +14,7 @@ class Controller:
         self.n_actions = args.n_actions        
         self.agent_id = args.agent_id
         self.last_action = args.last_action
-        self.device = args.device
-        self.explore_type = args.explore_type
+        self.device = args.device    
         self.sys_agent_src = sys_agent
         self.sys_agent = type(sys_agent)(args)        
         self.sys_agent.eval()

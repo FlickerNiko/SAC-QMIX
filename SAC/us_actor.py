@@ -53,13 +53,9 @@ class VDNActor(nn.Module):
         h = F.relu(self.fc3(h))
         h = self.fc4(h)
         h[avail_actions == 0] = -float('inf')
-        #blocked = torch.nonzero(1-avail_actions,as_tuple=True)
+        
         #h[blocked] = -1e38
-        h = torch.softmax(h,-1)
-        #a = torch.multinomial(h,1)
-        y = h.reshape(n_batch,self.n_agents,self.n_actions)
-        #a = a.reshape(n_batch,self.n_agents)
-        
-        
+        h = torch.softmax(h,-1)        
+        y = h.reshape(n_batch,self.n_agents,self.n_actions)                
         return y, h_next
 
