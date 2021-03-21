@@ -31,11 +31,15 @@ class Experiment:
 
     def start(self):
         args = self.args
-        path_checkpts = 'checkpoints'
-        if not os.path.exists(path_checkpts):
-            os.mkdir(path_checkpts)
-        path_checkpt = os.path.join(path_checkpts, args.run_name + '.tar')
-                            
+
+        path_checkpt = 'checkpoints'
+        path_result = 'results'
+        if not os.path.exists(path_checkpt):
+            os.mkdir(path_checkpt)
+        if not os.path.exists(path_result):
+            os.mkdir(path_result)
+        path_checkpt = os.path.join(path_checkpt, args.run_name + '.tar')
+        path_result = os.path.join(path_result, args.run_name)
             
         env = StarCraft2Env(map_name=args.map_name, window_size_x=640, window_size_y=480)
         env_info = env.get_env_info()
@@ -67,11 +71,11 @@ class Experiment:
         scheme['state'] = {'shape':(args.state_dim,), 'dtype': torch.float32}
 
         buffer = EpisodeBuffer(scheme, args)
-        
-        e = 1
-                        
+        result = np.zeros((2, args.n_episodes // args.test_every))
+
+        self.e = 1                        
         self.path_checkpt = path_checkpt
-        self.e = e
+        self.path_result = path_result        
         self.env = env        
         self.writter = writter
         self.w_util = w_util
@@ -79,41 +83,44 @@ class Experiment:
         self.runner = runner
         self.learner = learner
         self.buffer = buffer
+        self.result = result
 
         if not args.new_run:
             self.load()
                     
         
     def run(self):
-        e = self.e
+        
         args = self.args
         buffer = self.buffer        
         runner = self.runner
         learner = self.learner
         w_util = self.w_util
         
-        for e in range(e ,args.n_episodes):
+        for self.e in range(self.e, args.n_episodes+1):
             w_util.new_step()            
             data, episode_reward, _ =  runner.run()                    
             buffer.add_episode(data)
             data = buffer.sample(args.n_batch, args.top_n)        
             w_util.WriteScalar('train/reward', episode_reward)
-            print("Episode {}, reward = {}".format(e, episode_reward))
+            print("Episode {}, reward = {}".format(self.e, episode_reward))
             if data:
                 loss = learner.train(data)                        
                             
-            if e % args.test_every == 0:
+            if self.e % args.test_every == 0:
                 self.test_model()
 
-            if e % args.save_every == 0:                                
-                self.e = e
+            if self.e % args.save_every == 0:                
                 self.save()
+
         self.env.close()
 
     def test_model(self):
         args = self.args
         w_util = self.w_util
         runner = self.runner
+        result = self.result
+
         win_count = 0
         reward_avg = 0
         for i in range(args.test_count):
@@ -124,5 +131,7 @@ class Experiment:
         win_rate = win_count/args.test_count
         reward_avg /= args.test_count
         w_util.WriteScalar('test/reward', reward_avg)
-        w_util.WriteScalar('test/win_rate', win_rate)                
+        w_util.WriteScalar('test/win_rate', win_rate)
+        result[:, self.e // args.test_every] = [self.e, win_rate]
+        np.save(self.path_result, result)
         print('Test reward = {}, win_rate = {}'.format(reward_avg, win_rate))
