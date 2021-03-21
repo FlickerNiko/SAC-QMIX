@@ -22,12 +22,14 @@ class Experiment:
         run_state['learner'] = self.learner.state_dict()
         run_state['buffer'] = self.buffer.state_dict()
         torch.save(run_state, self.path_checkpt)
+        np.save(self.path_result, self.result)
 
     def load(self):
         run_state = torch.load(self.path_checkpt)
         self.e = run_state['episode'] + 1
         self.learner.load_state_dict(run_state['learner'])                
         self.buffer.load_state_dict(run_state['buffer'])
+        self.result = np.load(self.path_result)
 
     def start(self):
         args = self.args
@@ -39,7 +41,7 @@ class Experiment:
         if not os.path.exists(path_result):
             os.mkdir(path_result)
         path_checkpt = os.path.join(path_checkpt, args.run_name + '.tar')
-        path_result = os.path.join(path_result, args.run_name)
+        path_result = os.path.join(path_result, args.run_name + '.npy')
             
         env = StarCraft2Env(map_name=args.map_name, window_size_x=640, window_size_y=480)
         env_info = env.get_env_info()
@@ -85,7 +87,7 @@ class Experiment:
         self.buffer = buffer
         self.result = result
 
-        if not args.new_run:
+        if args.continue_run:
             self.load()
                     
         
@@ -132,6 +134,5 @@ class Experiment:
         reward_avg /= args.test_count
         w_util.WriteScalar('test/reward', reward_avg)
         w_util.WriteScalar('test/win_rate', win_rate)
-        result[:, self.e // args.test_every] = [self.e, win_rate]
-        np.save(self.path_result, result)
+        result[:, self.e // args.test_every] = [self.e, win_rate]        
         print('Test reward = {}, win_rate = {}'.format(reward_avg, win_rate))

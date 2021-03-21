@@ -15,17 +15,18 @@ if __name__ == "__main__":
 
     
     config_path='config.json'
-    new_run = True
-    argv = sys.argv
-    if len(argv)>1:
-        if argv[1] == '-c':  ##continue
-            new_run = False
-
+        
     with open(config_path, 'r') as f:
         config = json.load(f)
     args = Args()
-    args.__dict__.update(config)    
-    args.new_run = new_run
+    args.__dict__.update(config)
+
+    args.continue_run = False
+    argv = sys.argv
+    if len(argv)>1:
+        if argv[1] == '-c':  ##continue
+            args.continue_run = True
+
     experiment = Experiment(args)
     experiment.start()
     experiment.run()
