@@ -237,7 +237,35 @@ class Learner:
         
         return m_loss.item()
 
+    def state_dict(self):
+        state_dict = {}
+        state_dict['critic1'] = self.sys_critic1.state_dict()
+        state_dict['critic2'] = self.sys_critic2.state_dict()
+        state_dict['critic1_tar'] = self.sys_critic1_tar.state_dict()
+        state_dict['critic2_tar'] = self.sys_critic2_tar.state_dict()
+        state_dict['mix_net1'] = self.mix_net1.state_dict()
+        state_dict['mix_net2'] = self.mix_net2.state_dict()
+        state_dict['mix_net1_tar'] = self.mix_net1_tar.state_dict()
+        state_dict['mix_net2_tar'] = self.mix_net2_tar.state_dict()
+        state_dict['actor'] = self.sys_actor.state_dict()
+        state_dict['optim_critic'] = self.optim_critic.state_dict()
+        state_dict['optim_actor'] = self.optim_actor.state_dict()
+        state_dict['optim_alpha'] = self.optim_alpha.state_dict()
+        return state_dict        
 
+    def load_state_dict(self, state_dict):
+        self.sys_critic1.load_state_dict(state_dict['critic1'])
+        self.sys_critic2.load_state_dict(state_dict['critic2'])
+        self.sys_critic1_tar.load_state_dict(state_dict['critic1_tar'])
+        self.sys_critic2_tar.load_state_dict(state_dict['critic2_tar'])
+        self.mix_net1.load_state_dict(state_dict['mix_net1'])
+        self.mix_net2.load_state_dict(state_dict['mix_net2'])
+        self.mix_net1_tar.load_state_dict(state_dict['mix_net1_tar'])
+        self.mix_net2_tar.load_state_dict(state_dict['mix_net2_tar'])
+        self.sys_actor.load_state_dict(state_dict['actor'])
+        self.optim_critic.load_state_dict(state_dict['optim_critic'])
+        self.optim_actor.load_state_dict(state_dict['optim_actor'])
+        self.optim_alpha.load_state_dict(state_dict['optim_alpha'])
 
         
     def gather_end(self, input, index):

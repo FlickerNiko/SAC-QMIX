@@ -66,7 +66,7 @@ class EpisodeBuffer:
         
 
     def state_dict(self):
-        buffer_state = {'index_st':self.index_st, 'n_sample': self.n_sample, 'data': self.data}
+        buffer_state = {'index_st': self.index_st, 'n_sample': self.n_sample, 'data': self.data}
         return buffer_state
     
     def load_state_dict(self, state_dict):

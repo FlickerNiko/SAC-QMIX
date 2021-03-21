@@ -3,8 +3,6 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import torch
 import os
-#from .vdn_actor import VDNActor
-#from .vdn_critic import VDNCritic
 from datetime import datetime
 from .learner_mix2 import Learner
 from .controller import Controller
@@ -18,18 +16,18 @@ class Experiment:
 
 
     def save(self):
-        run_state = {}
-        run_state['args'] = self.args.__dict__.copy()
-        del run_state['args']['new_run']
-        run_state['model_state'] = self.sys_agent.state_dict()
-        run_state['target_state'] = self.learner.sys_agent_tar.state_dict()
-        run_state['optim_state'] = self.learner.optimizer.state_dict()
-        run_state['episode'] = self.e            
-        run_state['buffer_state'] = self.buffer.state_dict()
+
+        run_state = {}        
+        run_state['episode'] = self.e
+        run_state['learner'] = self.learner.state_dict()
+        run_state['buffer'] = self.buffer.state_dict()
         torch.save(run_state, self.path_checkpt)
 
     def load(self):
-        pass
+        run_state = torch.load(self.path_checkpt)
+        self.e = run_state['episode'] + 1
+        self.learner.load_state_dict(run_state['learner'])                
+        self.buffer.load_state_dict(run_state['buffer'])
 
     def start(self):
         args = self.args
@@ -37,9 +35,7 @@ class Experiment:
         if not os.path.exists(path_checkpts):
             os.mkdir(path_checkpts)
         path_checkpt = os.path.join(path_checkpts, args.run_name + '.tar')
-        # if not args.new_run:
-        #     run_state = torch.load(path_checkpt)
-        #     args.__dict__.update(run_state['args'])            
+                            
             
         env = StarCraft2Env(map_name=args.map_name, window_size_x=640, window_size_y=480)
         env_info = env.get_env_info()
@@ -73,16 +69,7 @@ class Experiment:
         buffer = EpisodeBuffer(scheme, args)
         
         e = 1
-        
-        if not args.new_run:
-            run_state = torch.load(path_checkpt)
-            e = run_state['episode'] + 1
-            sys_agent.load_state_dict(run_state['model_state'])
-            learner.sys_agent_tar.load_state_dict(run_state['target_state'])
-            #learner.sys_agent_tar.load_state_dict(run_state['model_state'])
-            learner.optimizer.load_state_dict(run_state['optim_state'])
-            buffer.load_state_dict(run_state['buffer_state'])
-
+                        
         self.path_checkpt = path_checkpt
         self.e = e
         self.env = env        
@@ -92,8 +79,10 @@ class Experiment:
         self.runner = runner
         self.learner = learner
         self.buffer = buffer
-        
 
+        if not args.new_run:
+            self.load()
+                    
         
     def run(self):
         e = self.e
@@ -116,9 +105,9 @@ class Experiment:
             if e % args.test_every == 0:
                 self.test_model()
 
-            #if e % args.save_every == 0:                                
-                #self.e = e
-                #self.save()
+            if e % args.save_every == 0:                                
+                self.e = e
+                self.save()
         self.env.close()
 
     def test_model(self):

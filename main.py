@@ -24,8 +24,7 @@ if __name__ == "__main__":
     with open(config_path, 'r') as f:
         config = json.load(f)
     args = Args()
-    args.__dict__.update(config)
-    #args.run_name = os.path.split(config_path)[-1][0:-5]
+    args.__dict__.update(config)    
     args.new_run = new_run
     experiment = Experiment(args)
     experiment.start()
