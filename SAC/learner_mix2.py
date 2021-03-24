@@ -56,12 +56,12 @@ class Learner:
         self.target_update = args.target_update
         self.step = 0                
         self.agent_id = args.agent_id
-        self.last_action = args.last_action        
+        self.last_action = args.last_action  
+        self.log_alpha_st = args.log_alpha_st      
         self.args = args
 
         
-        self.log_alpha = torch.tensor([-2]*self.n_agents, dtype=torch.float32, requires_grad=True, device = self.device)        
-        #self.log_alpha = torch.zeros(self.n_agents,dtype=torch.float32,requires_grad=True,device=self.device)
+        self.log_alpha = torch.tensor([args.log_alpha_st]*self.n_agents, dtype=torch.float32, requires_grad=True, device = self.device)        
         
         params_critic = list(self.sys_critic1.parameters()) + list(self.sys_critic2.parameters()) + list(self.mix_net1.parameters()) + list(self.mix_net2.parameters())
         

@@ -41,6 +41,6 @@ class Runner:
 
         #data['steps'] = steps
         win_tag = True if 'battle_won' in info and info['battle_won'] else False
-        return data, episode_reward, win_tag
+        return data, episode_reward, win_tag, steps
 
             

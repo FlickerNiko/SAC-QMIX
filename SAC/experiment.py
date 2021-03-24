@@ -17,8 +17,9 @@ class Experiment:
 
     def save(self):
 
-        run_state = {}        
+        run_state = {}                
         run_state['episode'] = self.e
+        run_state['step'] = self.step
         run_state['learner'] = self.learner.state_dict()
         run_state['buffer'] = self.buffer.state_dict()
         torch.save(run_state, self.path_checkpt)
@@ -27,6 +28,7 @@ class Experiment:
     def load(self):
         run_state = torch.load(self.path_checkpt)
         self.e = run_state['episode'] + 1
+        self.step = run_state['step']
         self.learner.load_state_dict(run_state['learner'])                
         self.buffer.load_state_dict(run_state['buffer'])
         self.result = np.load(self.path_result)
@@ -36,12 +38,14 @@ class Experiment:
 
         path_checkpt = 'checkpoints'
         path_result = 'results'
+        path_model = 'models'
         if not os.path.exists(path_checkpt):
             os.mkdir(path_checkpt)
         if not os.path.exists(path_result):
             os.mkdir(path_result)
         path_checkpt = os.path.join(path_checkpt, args.run_name + '.tar')
         path_result = os.path.join(path_result, args.run_name + '.npy')
+        path_model = os.path.join(path_model, args.run_name + '.tar')
             
         env = StarCraft2Env(map_name=args.map_name, window_size_x=640, window_size_y=480)
         env_info = env.get_env_info()
@@ -73,11 +77,14 @@ class Experiment:
         scheme['state'] = {'shape':(args.state_dim,), 'dtype': torch.float32}
 
         buffer = EpisodeBuffer(scheme, args)
-        result = np.zeros((2, args.n_episodes // args.test_every))
+        result = np.zeros((3, args.n_episodes // args.test_every))
 
-        self.e = 1                        
+        self.e = 1
+        self.step = 0
+        self.best_win_rate = 0                   
         self.path_checkpt = path_checkpt
-        self.path_result = path_result        
+        self.path_result = path_result
+        self.path_model = path_model      
         self.env = env        
         self.writter = writter
         self.w_util = w_util
@@ -101,7 +108,8 @@ class Experiment:
         
         for self.e in range(self.e, args.n_episodes+1):
             w_util.new_step()            
-            data, episode_reward, _ =  runner.run()                    
+            data, episode_reward, _, step =  runner.run()
+            self.step += step                   
             buffer.add_episode(data)
             data = buffer.sample(args.n_batch, args.top_n)        
             w_util.WriteScalar('train/reward', episode_reward)
@@ -126,13 +134,16 @@ class Experiment:
         win_count = 0
         reward_avg = 0
         for i in range(args.test_count):
-            _, episode_reward, win_tag =  runner.run(test_mode=True)
+            _, episode_reward, win_tag, _ =  runner.run(test_mode=True)
             if win_tag:
                 win_count += 1
             reward_avg += episode_reward                
-        win_rate = win_count/args.test_count
+        win_rate = win_count/args.test_count        
         reward_avg /= args.test_count
         w_util.WriteScalar('test/reward', reward_avg)
         w_util.WriteScalar('test/win_rate', win_rate)
-        result[:, self.e // args.test_every] = [self.e, win_rate]        
+        result[:, self.e // args.test_every] = [self.e, self.step, win_rate]
+        if win_rate > self.best_win_rate:
+            self.best_win_rate = win_rate
+            np.save(self.path_model, self.learner.sys_actor.state_dict())
         print('Test reward = {}, win_rate = {}'.format(reward_avg, win_rate))
