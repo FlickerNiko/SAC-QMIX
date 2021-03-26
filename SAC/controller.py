@@ -17,7 +17,7 @@ class Controller:
         self.device = args.device    
         self.sys_agent_src = sys_agent
         self.sys_agent = type(sys_agent)(args)        
-        self.sys_agent.eval()
+        self.sys_agent.requires_grad_(False)        
         self.episode = 0
 
     def new_episode(self):

@@ -20,6 +20,7 @@ class Experiment:
         run_state = {}                
         run_state['episode'] = self.e
         run_state['step'] = self.step
+        run_state['best_win_rate'] = self.best_win_rate
         run_state['learner'] = self.learner.state_dict()
         run_state['buffer'] = self.buffer.state_dict()
         torch.save(run_state, self.path_checkpt)
@@ -29,6 +30,7 @@ class Experiment:
         run_state = torch.load(self.path_checkpt)
         self.e = run_state['episode'] + 1
         self.step = run_state['step']
+        self.best_win_rate = run_state['best_win_rate']
         self.learner.load_state_dict(run_state['learner'])                
         self.buffer.load_state_dict(run_state['buffer'])
         self.result = np.load(self.path_result)
@@ -43,6 +45,8 @@ class Experiment:
             os.mkdir(path_checkpt)
         if not os.path.exists(path_result):
             os.mkdir(path_result)
+        if not os.path.exists(path_model):
+            os.mkdir(path_model)
         path_checkpt = os.path.join(path_checkpt, args.run_name + '.tar')
         path_result = os.path.join(path_result, args.run_name + '.npy')
         path_model = os.path.join(path_model, args.run_name + '.tar')
@@ -145,5 +149,5 @@ class Experiment:
         result[:, self.e // args.test_every] = [self.e, self.step, win_rate]
         if win_rate > self.best_win_rate:
             self.best_win_rate = win_rate
-            np.save(self.path_model, self.learner.sys_actor.state_dict())
+            torch.save(self.learner.sys_actor.state_dict(), self.path_model)            
         print('Test reward = {}, win_rate = {}'.format(reward_avg, win_rate))

@@ -3,6 +3,7 @@ test.py
 runs
 checkpoints
 results
+models
 __pycache__
 mnist_train
 configs

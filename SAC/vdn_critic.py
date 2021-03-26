@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .critic_q import Critic
-
+from .critic import Critic
 class VDNCritic(nn.Module):
     def __init__(self, args):
         super(VDNCritic, self).__init__()

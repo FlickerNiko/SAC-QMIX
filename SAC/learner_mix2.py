@@ -16,8 +16,8 @@ class Learner:
         self.sys_critic2 = VDNCritic(args)
         self.sys_critic1_tar = VDNCritic(args)
         self.sys_critic2_tar = VDNCritic(args)
-        self.sys_critic1.train()
-        self.sys_critic2.train()
+        #self.sys_critic1.train()
+        #self.sys_critic2.train()
     
         self.mix_net1 = QMixNet(args)        
         self.mix_net2 = QMixNet(args)        
