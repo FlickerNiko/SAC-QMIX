@@ -41,7 +41,14 @@ class Controller:
         with torch.no_grad():
             ps, hs_next = self.sys_agent.forward(states, avail_actions, self.hiddens)
         self.hiddens = hs_next
-        acts = torch.multinomial(ps[0],1).squeeze(-1)
+        #ps[avail_actions == 0] = 0
+        while True:
+            acts = torch.multinomial(ps[0],1).squeeze(-1)        
+            #acts = torch.randint(self.n_actions, size=(self.n_agents,))
+            selected_avails = avail_actions[0][torch.arange(self.n_agents),acts]
+            if not (selected_avails == 0).sum().item():
+                break
+
         if explore:
             actions = acts
         else:

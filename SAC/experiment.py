@@ -23,8 +23,7 @@ class Experiment:
         run_state['best_win_rate'] = self.best_win_rate
         run_state['learner'] = self.learner.state_dict()
         run_state['buffer'] = self.buffer.state_dict()
-        torch.save(run_state, self.path_checkpt)
-        np.save(self.path_result, self.result)
+        torch.save(run_state, self.path_checkpt)        
 
     def load(self):
         run_state = torch.load(self.path_checkpt)
@@ -124,7 +123,7 @@ class Experiment:
             if self.e % args.test_every == 0:
                 self.test_model()
 
-            if self.e % args.save_every == 0:                
+            if args.save_every and self.e % args.save_every == 0:                
                 self.save()
 
         self.env.close()
@@ -146,7 +145,8 @@ class Experiment:
         reward_avg /= args.test_count
         w_util.WriteScalar('test/reward', reward_avg)
         w_util.WriteScalar('test/win_rate', win_rate)
-        result[:, self.e // args.test_every] = [self.e, self.step, win_rate]
+        result[:, self.e // args.test_every -1] = [self.e, self.step, win_rate]
+        np.save(self.path_result, self.result)
         if win_rate > self.best_win_rate:
             self.best_win_rate = win_rate
             torch.save(self.learner.sys_actor.state_dict(), self.path_model)            
