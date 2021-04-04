@@ -1,0 +1,12 @@
+{
+    "map_name":"2s3z",
+    "run_name":"2s3z",    
+    "agent_id":true,
+    "last_action":false,    
+    "test_count":100,        
+    "rnn_hidden_dim":64,    
+    "qmix_hidden_dim":64,    
+    "head_num":8,
+    "hidden_dim":256,
+    "device":"cpu"
+}
