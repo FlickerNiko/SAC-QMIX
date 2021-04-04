@@ -27,7 +27,7 @@ class Experiment:
 
     def load(self):
         run_state = torch.load(self.path_checkpt)
-        self.e = run_state['episode'] + 1
+        self.e = run_state['episode']
         self.step = run_state['step']
         self.best_win_rate = run_state['best_win_rate']
         self.learner.load_state_dict(run_state['learner'])                
@@ -80,9 +80,9 @@ class Experiment:
         scheme['state'] = {'shape':(args.state_dim,), 'dtype': torch.float32}
 
         buffer = EpisodeBuffer(scheme, args)
-        result = np.zeros((3, args.n_episodes // args.test_every))
+        result = np.zeros((3, args.n_steps // args.test_every_step))
 
-        self.e = 1
+        self.e = 0
         self.step = 0
         self.best_win_rate = 0                   
         self.path_checkpt = path_checkpt
@@ -109,19 +109,22 @@ class Experiment:
         learner = self.learner
         w_util = self.w_util
         
-        for self.e in range(self.e, args.n_episodes+1):
-            w_util.new_step()            
-            data, episode_reward, _, step =  runner.run()
+        while self.step < args.n_steps:
+        #for self.e in range(self.e, args.n_episodes+1):
+            self.e += 1            
+            data, episode_reward, win_tag, step =  runner.run()
+            old_step = self.step
             self.step += step                   
-            buffer.add_episode(data)
-            data = buffer.sample(args.n_batch, args.top_n)        
+            w_util.set_step(self.step)            
             w_util.WriteScalar('train/reward', episode_reward)
-            print("Episode {}, reward = {}".format(self.e, episode_reward))
+            print("Episode {}, step {}, win = {}, reward = {}".format(self.e, self.step, win_tag, episode_reward))
+            buffer.add_episode(data)
+            data = buffer.sample(args.n_batch, args.top_n)
             if data:
                 loss = learner.train(data)                        
-                            
-            if self.e % args.test_every == 0:
-                self.test_model()
+                        
+            if self.step // args.test_every_step != old_step // args.test_every_step:
+                self.test_model()            
 
             if args.save_every and self.e % args.save_every == 0:                
                 self.save()
@@ -145,9 +148,9 @@ class Experiment:
         reward_avg /= args.test_count
         w_util.WriteScalar('test/reward', reward_avg)
         w_util.WriteScalar('test/win_rate', win_rate)
-        result[:, self.e // args.test_every -1] = [self.e, self.step, win_rate]
+        result[:, self.step // args.test_every_step -1] = [self.e, self.step, win_rate]
         np.save(self.path_result, self.result)
-        if win_rate > self.best_win_rate:
+        if win_rate >= self.best_win_rate:
             self.best_win_rate = win_rate
             torch.save(self.learner.sys_actor.state_dict(), self.path_model)            
         print('Test reward = {}, win_rate = {}'.format(reward_avg, win_rate))

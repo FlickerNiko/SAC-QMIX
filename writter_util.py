@@ -8,46 +8,17 @@ class WritterUtil:
         self.log_every = args.log_every
         self.scalars = {}
         self.step = 0
+        self.log_step = 0
 
-    def new_step(self):
+    def set_step(self, step):
         self.step += 1
-
-    def WriteModel(self, tag, model):
-        # mean_dict = {}
-        # std_dict = {}
-        # mean_grad_dict = {}
-        # std_grad_dict = {}
-
-        for name, paramater in model.named_parameters():
-            data = paramater
-            # std, mean = torch.std_mean(data)
-            
-            self.writter.add_histogram('param/'+ tag + '/' + name, data, step)
-            
-            # mean_dict[name] = mean
-            # std_dict[name] = std
-            
-            grad = data.grad
-            if grad != None:
-                # std_grad, mean_grad = torch.std_mean(grad)
-                self.writter.add_histogram('grad/'+ tag + '/' + name, grad, step)
-                
-                # mean_grad_dict[name] = mean_grad
-                # std_grad_dict[name] = std_grad
-
-
-        # self.writter.add_scalars('param/'+tag+'/mean', mean_dict, step)
-        # self.writter.add_scalars('param/'+tag+'/std', std_dict, step)
-        # if len(mean_grad_dict):
-        #     self.writter.add_scalars('grad/'+tag+'/mean', mean_grad_dict, step)
-        # if len(std_grad_dict):
-        #     self.writter.add_scalars('grad/'+tag+'/std', std_grad_dict, step)
-
+        self.log_step = step
 
     def WriteScalar(self, tag, value):
         
         step = self.step
-        self.writter.add_scalar('raw/'+tag, value, step)
+        log_step = self.log_step
+        self.writter.add_scalar('raw/'+tag, value, log_step)
 
         if tag not in self.scalars:
             self.scalars[tag] = [0, step-1, torch.zeros(self.log_every)]
@@ -58,8 +29,8 @@ class WritterUtil:
         n += 1
         if step - last_step >= self.log_every:
             mean = torch.mean(buffer[0:n])
-            self.writter.add_scalar('mean/'+tag, mean, step)
-            self.writter.add_histogram(tag, buffer[0:n], step)
+            self.writter.add_scalar('mean/'+tag, mean, log_step)
+            self.writter.add_histogram(tag, buffer[0:n], log_step)
             
             last_step = step
             n=0
