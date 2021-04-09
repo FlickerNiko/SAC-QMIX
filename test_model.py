@@ -40,6 +40,7 @@ if __name__ == "__main__":
     args.episode_limit = env_info['episode_limit']
 
     actor = VDNActor(args)
+    actor.to(device=args.device)
     path_model = os.path.join('models', args.run_name + '.tar')
     state_dict = torch.load(path_model, args.device)
     actor.load_state_dict(state_dict)

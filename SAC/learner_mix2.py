@@ -248,6 +248,7 @@ class Learner:
         state_dict['mix_net1_tar'] = self.mix_net1_tar.state_dict()
         state_dict['mix_net2_tar'] = self.mix_net2_tar.state_dict()
         state_dict['actor'] = self.sys_actor.state_dict()
+        state_dict['log_alpha'] = self.log_alpha.detach()
         state_dict['optim_critic'] = self.optim_critic.state_dict()
         state_dict['optim_actor'] = self.optim_actor.state_dict()
         state_dict['optim_alpha'] = self.optim_alpha.state_dict()
@@ -263,6 +264,8 @@ class Learner:
         self.mix_net1_tar.load_state_dict(state_dict['mix_net1_tar'])
         self.mix_net2_tar.load_state_dict(state_dict['mix_net2_tar'])
         self.sys_actor.load_state_dict(state_dict['actor'])
+        with torch.no_grad():
+            self.log_alpha.copy_(state_dict['log_alpha'])
         self.optim_critic.load_state_dict(state_dict['optim_critic'])
         self.optim_actor.load_state_dict(state_dict['optim_actor'])
         self.optim_alpha.load_state_dict(state_dict['optim_alpha'])

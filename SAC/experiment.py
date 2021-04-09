@@ -148,7 +148,7 @@ class Experiment:
         reward_avg /= args.test_count
         w_util.WriteScalar('test/reward', reward_avg)
         w_util.WriteScalar('test/win_rate', win_rate)
-        result[:, self.step // args.test_every_step -1] = [self.e, self.step, win_rate]
+        result[:, self.step // args.test_every_step - 1] = [self.e, self.step, win_rate]
         np.save(self.path_result, self.result)
         if win_rate >= self.best_win_rate:
             self.best_win_rate = win_rate
