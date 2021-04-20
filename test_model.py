@@ -46,11 +46,10 @@ if __name__ == "__main__":
     actor.load_state_dict(state_dict)
     controller = Controller(actor,args)
     runner = Runner(env, controller, args)
-
-
+        
     win_count = 0
     reward_avg = 0
-    test_count = 100
+    test_count = args.test_count
     for i in range(test_count):
         _, episode_reward, win_tag, _ =  runner.run(test_mode=True)
         print("Episode {}, reward = {}".format(i, episode_reward))
@@ -59,6 +58,7 @@ if __name__ == "__main__":
         reward_avg += episode_reward                
         
     win_rate = win_count/test_count       
-    reward_avg /= test_count
-
+    reward_avg /= test_count    
     print('Test reward = {}, win_rate = {}'.format(reward_avg, win_rate))
+    if args.save_replay:
+        env.save_replay()

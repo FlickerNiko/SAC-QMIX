@@ -24,16 +24,16 @@ class Learner:
         self.mix_net1_tar = QMixNet(args)
         self.mix_net2_tar = QMixNet(args)
         
-        if self.device == 'cuda':
-            self.sys_actor.cuda()
-            self.sys_critic1.cuda()
-            self.sys_critic2.cuda()
-            self.sys_critic1_tar.cuda()
-            self.sys_critic2_tar.cuda()
-            self.mix_net1.cuda()
-            self.mix_net2.cuda()
-            self.mix_net1_tar.cuda()
-            self.mix_net2_tar.cuda()
+        if self.device != 'cpu':
+            self.sys_actor.cuda(self.device)
+            self.sys_critic1.cuda(self.device)
+            self.sys_critic2.cuda(self.device)
+            self.sys_critic1_tar.cuda(self.device)
+            self.sys_critic2_tar.cuda(self.device)
+            self.mix_net1.cuda(self.device)
+            self.mix_net2.cuda(self.device)
+            self.mix_net1_tar.cuda(self.device)
+            self.mix_net2_tar.cuda(self.device)
         
         self.sys_critic1_tar.requires_grad_(False)
         self.sys_critic2_tar.requires_grad_(False)

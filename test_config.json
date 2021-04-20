@@ -1,9 +1,10 @@
 {
-    "map_name":"2c_vs_64zg",
-    "run_name":"2c_vs_64zg",    
+    "map_name":"5m_vs_6m",
+    "run_name":"5m_vs_6m",    
     "agent_id":true,
     "last_action":false,    
-    "test_count":100,        
+    "test_count":5,        
+    "save_replay":true,
     "rnn_hidden_dim":64,    
     "qmix_hidden_dim":64,    
     "head_num":8,
