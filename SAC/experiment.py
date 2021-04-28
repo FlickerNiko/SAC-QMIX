@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import os
 from datetime import datetime
-from .learner_mix2 import Learner
+from .learner_mix import Learner
 from .controller import Controller
 from .episode_buffer import EpisodeBuffer
 from .runnner import Runner

@@ -1,9 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .vdn_actor import Actors
-#from .vdn_critic import Critics
-#from .us_critic2 import AttnCritics
+from .actors import Actors
 from .qmix_net import QMixNet
 
 class Learner:
@@ -13,10 +11,10 @@ class Learner:
         self.device = args.device
         self.critic_attn = args.critic_attn
 
-        if self.critic_attn:
-            from .us_critic2 import Critics
-        else:
-            from .vdn_critic import Critics
+        if self.critic_attn:                        
+            from .attn_critics import Critics
+        else:            
+            from .critics import Critics
 
         self.sys_actor = Actors(args)
         self.sys_critic1 = Critics(args)
