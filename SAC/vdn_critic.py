@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .critic import Critic
-class VDNCritic(nn.Module):
+class Critics(nn.Module):
     def __init__(self, args):
-        super(VDNCritic, self).__init__()
+        super(Critics, self).__init__()
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
         self.agent = Critic(args)

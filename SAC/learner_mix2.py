@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .vdn_actor import VDNActor
-from .us_critic2 import VDNCritic
+from .vdn_actor import Actors
+#from .vdn_critic import Critics
+#from .us_critic2 import AttnCritics
 from .qmix_net import QMixNet
 
 class Learner:
@@ -10,12 +11,18 @@ class Learner:
         
         self.w_util = w_util
         self.device = args.device
-        
-        self.sys_actor = VDNActor(args)
-        self.sys_critic1 = VDNCritic(args)
-        self.sys_critic2 = VDNCritic(args)
-        self.sys_critic1_tar = VDNCritic(args)
-        self.sys_critic2_tar = VDNCritic(args)
+        self.critic_attn = args.critic_attn
+
+        if self.critic_attn:
+            from .us_critic2 import Critics
+        else:
+            from .vdn_critic import Critics
+
+        self.sys_actor = Actors(args)
+        self.sys_critic1 = Critics(args)
+        self.sys_critic2 = Critics(args)
+        self.sys_critic1_tar = Critics(args)
+        self.sys_critic2_tar = Critics(args)
         #self.sys_critic1.train()
         #self.sys_critic2.train()
     
@@ -57,11 +64,16 @@ class Learner:
         self.step = 0                
         self.agent_id = args.agent_id
         self.last_action = args.last_action  
-        self.log_alpha_st = args.log_alpha_st      
+        self.log_alpha_st = args.log_alpha_st
+        self.shared_alpha = args.shared_alpha
+        self.maximum_entropy = args.maximum_entropy     
         self.args = args
 
         
-        self.log_alpha = torch.tensor([args.log_alpha_st]*self.n_agents, dtype=torch.float32, requires_grad=True, device = self.device)        
+        if self.shared_alpha:
+            self.log_alpha = torch.tensor(args.log_alpha_st, dtype=torch.float32, requires_grad=True, device = self.device)
+        else:
+            self.log_alpha = torch.tensor([args.log_alpha_st]*self.n_agents, dtype=torch.float32, requires_grad=True, device = self.device)
         
         params_critic = list(self.sys_critic1.parameters()) + list(self.sys_critic2.parameters()) + list(self.mix_net1.parameters()) + list(self.mix_net2.parameters())
         
@@ -202,7 +214,13 @@ class Learner:
                         
         qs_star = torch.zeros_like(q1s_tot)
         qs_star += reward.unsqueeze(-1)
-        qs_star[:,:-1] += self.gamma * (Ves_tot_tar[:,1:])
+
+        if self.maximum_entropy:
+            sys_v_tar = Ves_tot_tar
+        else:
+            sys_v_tar = Vs_tot_tar
+
+        qs_star[:,:-1] += self.gamma * (sys_v_tar[:,1:])
         
         loss1 = F.mse_loss(q1s_tot,qs_star)/valid_rate
         loss2 = F.mse_loss(q2s_tot,qs_star)/valid_rate        

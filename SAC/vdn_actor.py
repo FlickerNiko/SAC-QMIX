@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .actor import Actor
 
-class VDNActor(nn.Module):
+class Actors(nn.Module):
     def __init__(self, args):
-        super(VDNActor, self).__init__()
+        super(Actors, self).__init__()
         self.n_agents = args.n_agents
         self.n_actions = args.n_actions
         self.agent = Actor(args)

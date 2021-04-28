@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class VDNCritic(nn.Module):
+class Critics(nn.Module):
     def __init__(self, args):
-        super(VDNCritic, self).__init__()
+        super(Critics, self).__init__()
         self.n_agents = args.n_agents
         
         self.input_dim = args.input_dim        
