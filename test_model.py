@@ -6,7 +6,7 @@ import os
 from smac.env import StarCraft2Env
 from SAC.runnner import Runner
 from SAC.controller import Controller
-from SAC.vdn_actor import VDNActor
+from SAC.actors import Actors
 
 
 
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     args.state_dim = env_info['state_shape']
     args.episode_limit = env_info['episode_limit']
 
-    actor = VDNActor(args)
+    actor = Actors(args)
     actor.to(device=args.device)
     path_model = os.path.join('models', args.run_name + '.tar')
     state_dict = torch.load(path_model, args.device)
