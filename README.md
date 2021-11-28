@@ -66,9 +66,9 @@ Configs and parameters of the testing are defined in `test_config.json`. Match t
 
 ## Theory & Algorithm
 
-# Architecture
+### Architecture
 
-# Computation Flow
+### Computation Flow
 
 ##Performance
 
