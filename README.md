@@ -46,8 +46,10 @@ Note that data of other algorithm are from pyMARL. Therefore methods of evaluati
 
 ### Test Win Rate % of SAC-QMIX and other algorithms
 
-Mean of 5 independent runs
+(Mean of 5 independent runs)
 
+<div align=center>
+  
 |  Scenario  | IQL | VDN | QMIX | SAC-QMIX |
 |  :-------: | :-: | :-: | :--: | :------: |
 |  2s_vs_1sc | 100 | 100 | 100  | 100 |
@@ -64,10 +66,15 @@ Mean of 5 independent runs
 | 27m_vs_30m | 0   | 0   | 49   | 100 |
 |   MMM2     | 0   | 1   | 69   | 95  |
 |  corridor  | 0   | 0   | 1    | 0   |
+</div>
 
 ### Learning curves of SAC-QMIX and other algorithms
 
-Mean of 5 independent runs
+(Mean of 5 independent runs)
 
-
-
+<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/5m_vs_6m_all.svg"/></div>
+<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/27m_vs_30m_all.svg"/></div>
+<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/2c_vs_64zg_all.svg"/></div>
+<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/MMM2_all.svg"/></div>
+<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/3s5z_vs_3s6z_all.svg"/></div>
+<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/6h_vs_8z_all.svg"/></div>
