@@ -1,7 +1,7 @@
 
 # SAC-QMIX
 
-Algorithm that combines QMIX with SAC for Multi-Agent Reinforcement Learning.
+Algorithm that applies SAC to QMIX for Multi-Agent Reinforcement Learning. Demo here.
 
 ## Requirements
 
@@ -42,7 +42,7 @@ Configurations and parameters of the testing are specified in `test_config.json`
 
 ## Result
 
-Note that data of other algorithm are from pyMARL. Therefore methods of evaluation are kept the same as pyMARL did.
+Note that data of other algorithm are from [SMAC paper](https://github.com/oxwhirl/smac/releases/download/v1/smac_run_data.json). Therefore methods of evaluations are kept the same as [SMAC paper](https://arxiv.org/abs/1902.04043) did (StarCraftII version: SC2.4.6.2.69232). 
 
 ### Test Win Rate % of SAC-QMIX and other algorithms
 
