@@ -1,16 +1,17 @@
 
 # SAC-QMIX
 
+Algorithm that combines QMIX with SAC for Multi-Agent Reinforcement Learning.
+
 ## Requirements
 
 SMAC
 
-pytorch(GPU support recommanded while training)
+pytorch (GPU support recommanded while training)
 
 tensorboard
 
 StarCraft II
-
 
 For the installation of SMAC and StarCraft II, refer to the repository of [SMAC](https://github.com/oxwhirl/smac).
 
@@ -43,7 +44,10 @@ Configurations and parameters of the testing are specified in `test_config.json`
 
 Note that data of other algorithm are from pyMARL. Therefore methods of evaluation are kept the same as pyMARL did.
 
-### Test Win Rate % of QMIX-ME and other algorithms
+### Test Win Rate % of SAC-QMIX and other algorithms
+
+Mean of 5 independent runs
+
 |  Scenario  | IQL | VDN | QMIX | SAC-QMIX |
 |  :-------: | :-: | :-: | :--: | :------: |
 |  2s_vs_1sc | 100 | 100 | 100  | 100 |
@@ -62,4 +66,8 @@ Note that data of other algorithm are from pyMARL. Therefore methods of evaluati
 |  corridor  | 0   | 0   | 1    | 0   |
 
 ### Learning curves of SAC-QMIX and other algorithms
+
+Mean of 5 independent runs
+
+
 
