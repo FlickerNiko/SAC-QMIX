@@ -42,6 +42,8 @@ Configurations and parameters of the testing are specified in `test_config.json`
 
 ### Computation Flow
 
+Note that a_i is equivalent to \mu_i and s_i is equivalent to o_i in the architecture schema above.
+
 Train Objective: policies that maximum
 
 <img src="https://github.com/FlickerNiko/SAC-QMIX/blob/master/formulas/formula1.png"/>
