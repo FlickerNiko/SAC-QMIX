@@ -1,7 +1,7 @@
 
 # SAC-QMIX
 
-Algorithm that applies SAC to QMIX for Multi-Agent Reinforcement Learning. Demo here.
+Algorithm that applies SAC to QMIX for Multi-Agent Reinforcement Learning. Watch the [demo](https://youtu.be/T0t-d1e7IkE).
 
 ## Requirements
 
