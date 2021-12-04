@@ -38,9 +38,45 @@ Configurations and parameters of the testing are specified in `test_config.json`
 
 ### Architecture
 
-<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/SAC-QMIX.svg"/></div>
+<div align=center><img src = "https://github.com/FlickerNiko/SAC-QMIX/blob/master/SAC-QMIX.svg"/></div>
 
 ### Computation Flow
+
+Train Objective: policies that maximum
+
+<img src="https://github.com/FlickerNiko/SAC-QMIX/blob/master/formulas/formula1.png"/>
+
+Q-values computed by networks: 
+
+<img src="https://github.com/FlickerNiko/SAC-QMIX/blob/master/formulas/formula2.png"/>
+
+Individual state-value functions: 
+
+<img src="https://github.com/FlickerNiko/SAC-QMIX/blob/master/formulas/formula4.png"/>
+
+Total state-values (alpha is the entropy temperature):
+
+<img src="https://github.com/FlickerNiko/SAC-QMIX/blob/master/formulas/formula3.png"/>
+
+Q-values expressed with Bellman Function: 
+
+<img src="https://github.com/FlickerNiko/SAC-QMIX/blob/master/formulas/formula5.png"/>
+
+Critic networks update: minimum
+
+<img src="https://github.com/FlickerNiko/SAC-QMIX/blob/master/formulas/formula6.png"/>
+
+Actor networks update: maximum
+
+<img src="https://github.com/FlickerNiko/SAC-QMIX/blob/master/formulas/formula7.png"/>
+
+Entropy temperatures update: minimum
+
+<img src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/formulas/formula8.png"/>
+
+
+
+
 
 ## Result
 
@@ -74,9 +110,9 @@ Note that data of other algorithm are from [SMAC paper](https://github.com/oxwhi
 
 (Mean of 5 independent runs)
 
-<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/5m_vs_6m_all.svg"/></div>
-<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/27m_vs_30m_all.svg"/></div>
-<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/2c_vs_64zg_all.svg"/></div>
-<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/MMM2_all.svg"/></div>
-<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/3s5z_vs_3s6z_all.svg"/></div>
-<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/6h_vs_8z_all.svg"/></div>
+<div align=center><img src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/5m_vs_6m_all.svg"/></div>
+<div align=center><img src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/27m_vs_30m_all.svg"/></div>
+<div align=center><img src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/2c_vs_64zg_all.svg"/></div>
+<div align=center><img src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/MMM2_all.svg"/></div>
+<div align=center><img src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/3s5z_vs_3s6z_all.svg"/></div>
+<div align=center><img src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/figures/6h_vs_8z_all.svg"/></div>
