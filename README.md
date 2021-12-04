@@ -38,6 +38,8 @@ Configurations and parameters of the testing are specified in `test_config.json`
 
 ### Architecture
 
+<div align=center><img width = '600' height ='300' src ="https://github.com/FlickerNiko/SAC-QMIX/blob/master/SAC-QMIX.svg"/></div>
+
 ### Computation Flow
 
 ## Result
