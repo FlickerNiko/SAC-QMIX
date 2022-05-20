@@ -10,7 +10,7 @@
     "gamma":0.99,
     "log_alpha_st":-2,         
     "entropy_tar":0.2,   
-    "maximum_entropy":false,
+    "maximum_entropy":true,
     "shared_alpha":true, 
     "critic_attn":true,
     "agent_id":true,
